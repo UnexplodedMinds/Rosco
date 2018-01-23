@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/graphics">
+        <file>resources/Plane.png</file>
+        <file>resources/AltitudeKey.png</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file>resources/Backspace.png</file>
+        <file>resources/HeadingIcon.png</file>
+        <file>resources/WindIcon.png</file>
+        <file>resources/Elevation.png</file>
+    </qresource>
+</RCC>
