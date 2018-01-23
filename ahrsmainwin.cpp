@@ -7,18 +7,19 @@ Stratux AHRS Display
 
 #include "AHRSMainWin.h"
 #include "StreamReader.h"
+#include "AppDefs.h"
 
 
 AHRSMainWin::AHRSMainWin( QWidget *parent )
     : QMainWindow( parent ),
       m_pStratuxStream( new StreamReader( this ) ),
-      m_bTrafficOn( true )
+      m_eTrafficDisp( AHRS::AllTraffic )
 {
     setupUi( this );
 
     connect( m_pConnectButton, SIGNAL( clicked() ), m_pStratuxStream, SLOT( connectStreams() ) );
     connect( m_pExitButton, SIGNAL( clicked() ), qApp, SLOT( closeAllWindows() ) );
-    connect( m_pTrafficOnOffButton, SIGNAL( clicked()), this, SLOT( trafficToggle() ) );
+    connect( m_pTrafficButton, SIGNAL( clicked()), this, SLOT( trafficToggle() ) );
 
     QTimer::singleShot( 100, this, SLOT( init() ) );
 }
@@ -62,15 +63,24 @@ void AHRSMainWin::stratuxConnected( bool bConnected )
 
 void AHRSMainWin::trafficToggle()
 {
-    QPalette pal( m_pTrafficOnOffButton->palette() );
+    int i = static_cast<int>( m_eTrafficDisp ) + 1;
 
-    m_bTrafficOn = (!m_bTrafficOn);
+    m_eTrafficDisp = static_cast<AHRS::TrafficDisp>( i );
+    if( m_eTrafficDisp > AHRS::NoTraffic )
+        m_eTrafficDisp = AHRS::AllTraffic;
 
-    if( m_bTrafficOn )
-        pal.setColor( QPalette::Window, Qt::green );
-    else
-        pal.setColor( QPalette::Window, Qt::white );
+    switch( m_eTrafficDisp )
+    {
+        case AHRS::AllTraffic:
+            m_pTrafficButton->setText( "ALL" );
+            break;
+        case AHRS::ADSBOnlyTraffic:
+            m_pTrafficButton->setText( "ADSB" );
+            break;
+        case AHRS::NoTraffic:
+            m_pTrafficButton->setText( "OFF" );
+            break;
+    }
 
-    m_pTrafficOnOffButton->setPalette( pal );
-    emit trafficToggled( m_bTrafficOn );
+    emit trafficToggled( m_eTrafficDisp );
 }

@@ -104,7 +104,11 @@
    <string>Form</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QPushButton { border: none; background-color: white; margin: 5px; }</string>
+   <string notr="true">QPushButton
+{
+	 border: none;
+	background-color: qlineargradient( x1:0, y1:0, x2:0, y2:1, stop: 0 white, stop:1 CornflowerBlue ); margin: 5px;
+}</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">

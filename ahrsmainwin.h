@@ -10,6 +10,8 @@ Stratux AHRS Display
 
 #include "ui_AHRSMainWin.h"
 
+#include "AppDefs.h"
+
 
 class StreamReader;
 
@@ -23,8 +25,8 @@ public:
     ~AHRSMainWin();
 
 private:
-    StreamReader *m_pStratuxStream;
-    bool          m_bTrafficOn;
+    StreamReader     *m_pStratuxStream;
+    AHRS::TrafficDisp m_eTrafficDisp;
 
 private slots:
     void status( const QColor &statusColor, const QString &qsStatusText );
@@ -33,7 +35,7 @@ private slots:
     void trafficToggle();
 
 signals:
-    void trafficToggled( bool );
+    void trafficToggled( AHRS::TrafficDisp );
 };
 
 #endif // __AHRSMAINWIN_H__

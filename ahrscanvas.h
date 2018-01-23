@@ -12,6 +12,7 @@ Stratux AHRS Display
 
 #include "StratuxStreams.h"
 #include "Canvas.h"
+#include "AppDefs.h"
 
 
 class QDial;
@@ -61,11 +62,11 @@ private:
     double                    m_dDPIMult;
     int                       m_iAltSpeedOffset;
     QMap<int, StratuxTraffic> m_trafficMap;
-    bool                      m_bTrafficOn;
+    AHRS::TrafficDisp         m_eTrafficDisp;
     bool                      m_bHideGPSLocation;
 
 private slots:
-    void trafficToggled( bool bOn );
+    void trafficToggled( AHRS::TrafficDisp eDispType );
 };
 
 #endif // __AHRSCANVAS_H__

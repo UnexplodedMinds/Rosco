@@ -32,7 +32,7 @@ AHRSCanvas::AHRSCanvas( QWidget *parent )
       m_pAltTape( 0 ),
       m_pSpeedTape( 0 ),
       m_pVertSpeedTape( 0 ),
-      m_bTrafficOn( true ),
+      m_eTrafficDisp( AHRS::AllTraffic ),
       m_bHideGPSLocation( false )
 {
     m_planeIcon.load( ":/graphics/resources/Plane.png" );
@@ -108,7 +108,7 @@ void AHRSCanvas::init()
     buildVertSpeedTape();
     m_bInitialized = true;
 
-    connect( static_cast<AHRSMainWin *>( parentWidget()->parentWidget() ), SIGNAL( trafficToggled( bool ) ), this, SLOT( trafficToggled( bool ) ) );
+    connect( static_cast<AHRSMainWin *>( parentWidget()->parentWidget() ), SIGNAL( trafficToggled( AHRS::TrafficDisp ) ), this, SLOT( trafficToggled( AHRS::TrafficDisp ) ) );
 }
 
 
@@ -387,7 +387,7 @@ void AHRSCanvas::paintEvent( QPaintEvent *pEvent )
     ahrs.setPen( Qt::NoPen );
     ahrs.drawPixmap( 3.0, c.dH2 + c.iLargeFontHeight + 2.0, c.dW5 - 5.0, c.iLargeFontHeight - 4.0, m_trafficAltKey );
 
-    if( m_bTrafficOn )
+    if( m_eTrafficDisp != AHRS::NoTraffic )
         updateTraffic( &ahrs, c.dH2 + (c.iLargeFontHeight * 2.0) + 30.0 );
 }
 
@@ -399,18 +399,36 @@ void AHRSCanvas::updateTraffic( QPainter *pAhrs, double dListPos )
     double                dDistInc = m_pHeadIndicator->height() / 80.0 * 1.75;   // The heading indicator outer diameter = 20NM
     QPen                  planePen( Qt::black, g_bEmulated ? 15 : 30, Qt::SolidLine, Qt::RoundCap, Qt::BevelJoin );
     CanvasConstants       c = m_pCanvas->contants();
+    QFont                 trafficFont( "Roboto", 12, QFont::Bold );
+    QFontMetrics          trafficMetrics( trafficFont );
+    QRect                 trafficRect( trafficMetrics.boundingRect( "N0000000" ) );
+    int                   iTrafficCount = trafficList.count();
 
-    if( trafficList.count() > 0 )
+    foreach( traffic, trafficList )
     {
-        pAhrs->setPen( Qt::black );
-        pAhrs->setBrush( QColor( 255, 255, 255, 10 ) );
-        pAhrs->drawRect( c.dW - c.dW5 + (g_bEmulated ? 10.0 : 40.0), dListPos - 10.0, c.dW5 - 20.0, c.iTinyFontHeight * (trafficList.count() + 1) );
+        if( (m_eTrafficDisp == AHRS::ADSBOnlyTraffic) && (!traffic.bHasADSB) )
+            iTrafficCount--;
     }
+    if( iTrafficCount > 0 )
+    {
+        QLinearGradient trafficGradient( 0.0, dListPos - 10.0, 0.0, dListPos - 10.0 + (c.iTinyFontHeight * (trafficList.count() + 1)) );
+
+        trafficGradient.setColorAt( 0, Qt::lightGray );
+        trafficGradient.setColorAt( 1, Qt::darkGray );
+        pAhrs->setPen( Qt::black );
+        pAhrs->setBrush( trafficGradient );
+        pAhrs->drawRect( c.dW - trafficRect.width() - 40.0, dListPos - 10.0, trafficRect.width() + 20, c.iTinyFontHeight * (trafficList.count() + 1) );
+    }
+
+    pAhrs->setFont( trafficFont );
 
     // Draw a large dot for each aircraft; the outer edge of the heading indicator is calibrated to be 20 NM out from your position
     foreach( traffic, trafficList )
     {
-        planePen.setColor( Qt::gray );
+        if( (m_eTrafficDisp == AHRS::ADSBOnlyTraffic) && (!traffic.bHasADSB) )
+            continue;
+
+        planePen.setColor( Qt::black );                   // Gray is hard to see on the gray gradient so the gray text is black
         if( traffic.dAlt >= 2000.0 )
             planePen.setColor( QColor( 0, 128, 128 ) );   // teal
         if( traffic.dAlt >= 5000.0 )
@@ -448,8 +466,15 @@ void AHRSCanvas::updateTraffic( QPainter *pAhrs, double dListPos )
         planePen.setWidth( 1 );
         pAhrs->setPen( planePen );
         dListPos += c.iTinyFontHeight;
-        pAhrs->drawText( c.dW - c.dW5 + (g_bEmulated ? 20.0 : 50.0), dListPos, traffic.qsReg );
+        pAhrs->drawText( c.dW - trafficRect.width() - 20.0, dListPos, traffic.qsReg );
+        if( traffic.bHasADSB )
+        {
+            planePen.setWidth( 7 );
+            pAhrs->setPen( planePen );
+            pAhrs->drawPoint( c.dW - trafficRect.width() - 30.0, dListPos - (c.iTinyFontHeight / 2) + 3 );
+        }
     }
+
 }
 
 
@@ -785,8 +810,8 @@ void AHRSCanvas::buildHeadingIndicator()
 }
 
 
-void AHRSCanvas::trafficToggled( bool bOn )
+void AHRSCanvas::trafficToggled( AHRS::TrafficDisp eDispType )
 {
-    m_bTrafficOn = bOn;
+    m_eTrafficDisp = eDispType;
 }
 

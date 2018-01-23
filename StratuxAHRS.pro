@@ -41,7 +41,8 @@ HEADERS += \
     Keypad.h \
     PressButton.h \
     TrafficMath.h \
-    Canvas.h
+    Canvas.h \
+    AppDefs.h
 
 FORMS += \
     AHRSMainWin.ui \
