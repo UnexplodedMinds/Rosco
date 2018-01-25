@@ -14,7 +14,6 @@ Stratux AHRS Display
 #include "AHRSCanvas.h"
 #include "BugSelector.h"
 #include "Keypad.h"
-#include "PressButton.h"
 #include "AHRSMainWin.h"
 
 
@@ -33,7 +32,8 @@ AHRSCanvas::AHRSCanvas( QWidget *parent )
       m_pSpeedTape( 0 ),
       m_pVertSpeedTape( 0 ),
       m_eTrafficDisp( AHRS::AllTraffic ),
-      m_bHideGPSLocation( false )
+      m_bHideGPSLocation( false ),
+      m_bUpdated( false )
 {
     m_planeIcon.load( ":/graphics/resources/Plane.png" );
     m_headIcon.load( ":/icons/resources/HeadingIcon.png" );
@@ -92,7 +92,7 @@ void AHRSCanvas::init()
     m_iAltSpeedOffset = static_cast<int>( static_cast<double>( c.iTinyFontHeight ) * 0.37 );
 
     m_pRollIndicator = new QPixmap( static_cast<int>( c.dW2 ), static_cast<int>( c.dH2 / c.dAspectP ) );
-    m_pHeadIndicator = new QPixmap( static_cast<int>( c.dW2 ), static_cast<int>( c.dH2 / c.dAspectP ) );
+    m_pHeadIndicator = new QPixmap( static_cast<int>( c.dW2 / (c.dW2 / (c.dH2 - c.dH7)) ), static_cast<int>( c.dH2 - c.dH7 ) );
     m_pAltTape = new QPixmap( static_cast<int>( c.dW5 ) - 50, c.iTinyFontHeight * 400 );    // 20000 ft / 100 x double the font height
     m_pVertSpeedTape = new QPixmap( 50, c.dH2 );
     m_pSpeedTape = new QPixmap( static_cast<int>( c.dW5 ), c.iTinyFontHeight * 60 );        // 300 Knots x double the font height
@@ -106,9 +106,9 @@ void AHRSCanvas::init()
     buildAltTape();
     buildSpeedTape();
     buildVertSpeedTape();
+    startTimer( 1000 );     // Just drives updating the canvas if we're not currently receiving anything new.
+                            // The only way this happens is if we're not talking to the Stratux whatsoever.
     m_bInitialized = true;
-
-    connect( static_cast<AHRSMainWin *>( parentWidget()->parentWidget() ), SIGNAL( trafficToggled( AHRS::TrafficDisp ) ), this, SLOT( trafficToggled( AHRS::TrafficDisp ) ) );
 }
 
 
@@ -119,6 +119,8 @@ void AHRSCanvas::resizeEvent( QResizeEvent *pEvent )
 
     if( m_bInitialized )
     {
+        if( m_iDispTimer != 0 )
+            killTimer( m_iDispTimer );
         m_bInitialized = false;
         delete m_pRollIndicator;
         delete m_pHeadIndicator;
@@ -127,6 +129,17 @@ void AHRSCanvas::resizeEvent( QResizeEvent *pEvent )
         delete m_pVertSpeedTape;
         init();
     }
+}
+
+
+void AHRSCanvas::timerEvent( QTimerEvent *pEvent )
+{
+    if( pEvent == 0 )
+        return;
+
+    if( !m_bUpdated )
+        update();
+    m_bUpdated = false;
 }
 
 
@@ -370,7 +383,7 @@ void AHRSCanvas::paintEvent( QPaintEvent *pEvent )
     ahrs.drawRect( c.dW - c.dW5, c.dH2, c.dW5, c.iLargeFontHeight );
     ahrs.drawRect( c.dW - c.dW5, c.dH2 + c.iLargeFontHeight, c.dW5, c.iLargeFontHeight );
     ahrs.setPen( Qt::green );
-    ahrs.setFont( med );
+    ahrs.setFont( small );
     QString qsLat = QString( "%1 %2" )
                         .arg( m_bHideGPSLocation ? 12.3456 : fabs( m_situation.dGPSlat ) )
                         .arg( (m_situation.dGPSlat < 0.0) ? "E" : "W" );
@@ -481,6 +494,7 @@ void AHRSCanvas::updateTraffic( QPainter *pAhrs, double dListPos )
 void AHRSCanvas::situation( StratuxSituation s )
 {
     m_situation = s;
+    m_bUpdated = true;
     update();
 }
 
@@ -508,6 +522,7 @@ void AHRSCanvas::traffic( int iICAO, StratuxTraffic t )
     }
 
     m_trafficMap.insert( iICAO, t );
+    m_bUpdated = true;
     update();
 }
 
@@ -531,36 +546,47 @@ void AHRSCanvas::mousePressEvent( QMouseEvent *pEvent )
 
         iButton = bugSel.exec();
 
+        // Back was pressed
+        if( iButton == -1 )
+            return;
+
         Keypad keypad( this );
 
         if( keypad.exec() == QDialog::Accepted )
         {
             int iAngle = keypad.value();
 
-            if( (iAngle >= 360) || (iAngle < 0) )
-                iAngle = 0;
+            // Automatically wrap around
+            while( iAngle > 360 )
+                iAngle -= 360;
+            // Heading bug
             if( iButton == QDialog::Accepted )
                 m_iHeadBugAngle = iAngle;
+            // Wind bug
             else if( iButton == QDialog::Rejected )
                 m_iWindBugAngle = iAngle;
         }
         else
-        {
+        {   // Heading bug
             if( iButton == QDialog::Accepted )
                 m_iHeadBugAngle = -1;
+            // Wind bug
             else if( iButton == QDialog::Rejected )
                 m_iWindBugAngle = -1;
         }
     }
     else if( gpsRect.contains( pressPt ) )
         m_bHideGPSLocation = (!m_bHideGPSLocation);
+
+    m_bUpdated = true;
+    update();
 }
 
 
 void AHRSCanvas::buildAltTape()
 {
     QPainter        ahrs( m_pAltTape );
-    QFont           altFont( "Roboto", 14 );
+    QFont           altFont( "Roboto", 12 );
     int             iAlt, iV = 1, iY;
     CanvasConstants c = m_pCanvas->contants();
 
@@ -569,7 +595,9 @@ void AHRSCanvas::buildAltTape()
     {
         ahrs.setPen( QPen( Qt::white, 2 ) );
         iY = iV * c.iTinyFontHeight * 2;
+        ahrs.scale( 1.5, 1.0 );
         ahrs.drawText( 0, iY, QString::number( iAlt ) );
+        ahrs.resetTransform();
         iY = iY - (c.iTinyFontHeight / 2) + m_iAltSpeedOffset - 2;
         ahrs.drawLine( m_pAltTape->width() - 24, iY, m_pAltTape->width() - 4, iY );
         ahrs.setPen( QPen( Qt::blue, 2 ) );
@@ -591,9 +619,6 @@ void AHRSCanvas::buildVertSpeedTape()
     int      iLineHeight = height() / 80;
 
     ahrs.setFont( vertFont );
-    // For some reason this is slightly off on Android
-    if( !g_bEmulated )
-        ahrs.scale( 1.0, 0.9 );
     for( iVert = 10; iVert >= -10; iVert-- )
     {
         ahrs.setPen( QPen( Qt::white, 2 ) );
@@ -731,8 +756,14 @@ void AHRSCanvas::buildHeadingIndicator()
     QPen     linePen( Qt::white, 3 );
     bool     bThis = true;
     QColor   orange( 255, 165, 0 );
+    int      iFontSize = 20;
 
-    QFont        headFont( "Roboto", 28 );
+    CanvasConstants c = m_pCanvas->contants();
+
+    if( c.dW > 1080 )
+        iFontSize = 30;
+
+    QFont        headFont( "Roboto", iFontSize );
     QFontMetrics headMetrics( headFont );
     QString      qsHead;
     QRect        headRect;
@@ -813,5 +844,7 @@ void AHRSCanvas::buildHeadingIndicator()
 void AHRSCanvas::trafficToggled( AHRS::TrafficDisp eDispType )
 {
     m_eTrafficDisp = eDispType;
+    m_bUpdated = true;
+    update();
 }
 

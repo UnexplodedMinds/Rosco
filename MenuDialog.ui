@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>BugSelectorBase</class>
- <widget class="QDialog" name="BugSelectorBase">
+ <class>MenuDialogBase</class>
+ <widget class="QDialog" name="MenuDialogBase">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>500</width>
-    <height>300</height>
+    <height>600</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,13 +19,13 @@
   <property name="minimumSize">
    <size>
     <width>500</width>
-    <height>300</height>
+    <height>600</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>500</width>
-    <height>300</height>
+    <height>600</height>
    </size>
   </property>
   <property name="palette">
@@ -127,7 +127,7 @@
     <number>20</number>
    </property>
    <item>
-    <widget class="QPushButton" name="m_pHeadingButton">
+    <widget class="QPushButton" name="m_pExitButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
@@ -146,16 +146,16 @@
       <bool>false</bool>
      </property>
      <property name="text">
-      <string>HEADING BUG</string>
+      <string> EXIT ROSCO </string>
      </property>
      <property name="icon">
       <iconset resource="ahrsresources.qrc">
-       <normaloff>:/icons/resources/HeadingIcon.png</normaloff>:/icons/resources/HeadingIcon.png</iconset>
+       <normaloff>:/icons/resources/Rosco.png</normaloff>:/icons/resources/Rosco.png</iconset>
      </property>
      <property name="iconSize">
       <size>
-       <width>32</width>
-       <height>32</height>
+       <width>64</width>
+       <height>64</height>
       </size>
      </property>
      <property name="autoDefault">
@@ -167,7 +167,44 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="m_pWindButton">
+    <widget class="QPushButton" name="m_pTrafficButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto</family>
+       <pointsize>20</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton { background-color: qlineargradient( x1:0, y1:0, x2:0, y2:1, stop: 0 white, stop:1 green ); }</string>
+     </property>
+     <property name="text">
+      <string> ALL TRAFFIC</string>
+     </property>
+     <property name="icon">
+      <iconset resource="ahrsresources.qrc">
+       <normaloff>:/icons/resources/Traffic.png</normaloff>:/icons/resources/Traffic.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>64</width>
+       <height>64</height>
+      </size>
+     </property>
+     <property name="autoDefault">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="m_pStayOnButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
@@ -183,16 +220,50 @@
       </font>
      </property>
      <property name="text">
-      <string>WIND BUG       </string>
+      <string> STAY ON        </string>
      </property>
      <property name="icon">
       <iconset resource="ahrsresources.qrc">
-       <normaloff>:/icons/resources/WindIcon.png</normaloff>:/icons/resources/WindIcon.png</iconset>
+       <normaloff>:/icons/resources/StayOn.png</normaloff>:/icons/resources/StayOn.png</iconset>
      </property>
      <property name="iconSize">
       <size>
-       <width>32</width>
-       <height>32</height>
+       <width>64</width>
+       <height>64</height>
+      </size>
+     </property>
+     <property name="autoDefault">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="m_pSettingsButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto</family>
+       <pointsize>20</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string> SETTINGS       </string>
+     </property>
+     <property name="icon">
+      <iconset resource="ahrsresources.qrc">
+       <normaloff>:/icons/resources/Settings.png</normaloff>:/icons/resources/Settings.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>64</width>
+       <height>64</height>
       </size>
      </property>
      <property name="autoDefault">
@@ -205,38 +276,5 @@
  <resources>
   <include location="ahrsresources.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>m_pHeadingButton</sender>
-   <signal>clicked()</signal>
-   <receiver>BugSelectorBase</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>41</x>
-     <y>54</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>9</x>
-     <y>54</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>m_pWindButton</sender>
-   <signal>clicked()</signal>
-   <receiver>BugSelectorBase</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>59</x>
-     <y>218</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>9</x>
-     <y>225</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

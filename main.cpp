@@ -19,6 +19,10 @@ int main( int argc, char *argv[] )
     QStringList  args( a.arguments() );
     AHRSMainWin w;
 
+    QCoreApplication::setOrganizationName( "Unexploded Minds" );
+    QCoreApplication::setOrganizationDomain( "unexplodedminds.com" );
+    QCoreApplication::setApplicationName( "Rosco" );
+
     a.setAttribute( Qt::AA_EnableHighDpiScaling );
 
     // Passed if running as an emulated display

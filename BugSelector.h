@@ -17,6 +17,9 @@ class BugSelector : public QDialog, public Ui::BugSelectorBase
 
 public:
     explicit BugSelector( QWidget *pParent );
+
+protected:
+    void keyReleaseEvent( QKeyEvent *pEvent );
 };
 
 #endif // __BUGSELECTOR_H__

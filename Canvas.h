@@ -13,6 +13,7 @@ struct CanvasConstants
     double dW2;
     double dW4;
     double dW5;
+    double dW7;
     double dW10;
     double dW20;
 
@@ -20,6 +21,7 @@ struct CanvasConstants
     double dH2;
     double dH4;
     double dH5;
+    double dH7;
     double dH10;
     double dH20;
     double dH160;

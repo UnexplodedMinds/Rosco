@@ -6,7 +6,11 @@
 
 QT += core gui websockets widgets
 
-TARGET = StratuxAHRS
+android {
+    QT += androidextras
+}
+
+TARGET = Rosco
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -28,9 +32,9 @@ SOURCES += \
     AHRSMainWin.cpp \
     BugSelector.cpp \
     Keypad.cpp \
-    PressButton.cpp \
     TrafficMath.cpp \
-    Canvas.cpp
+    Canvas.cpp \
+    MenuDialog.cpp
 
 HEADERS += \
     StratuxStreams.h \
@@ -39,15 +43,16 @@ HEADERS += \
     AHRSMainWin.h \
     BugSelector.h \
     Keypad.h \
-    PressButton.h \
     TrafficMath.h \
     Canvas.h \
-    AppDefs.h
+    AppDefs.h \
+    MenuDialog.h
 
 FORMS += \
     AHRSMainWin.ui \
     BugSelector.ui \
-    Keypad.ui
+    Keypad.ui \
+    MenuDialog.ui
 
 CONFIG += mobility
 MOBILITY = 

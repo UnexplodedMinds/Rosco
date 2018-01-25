@@ -24,18 +24,16 @@ public:
     explicit AHRSMainWin(QWidget *parent = 0);
     ~AHRSMainWin();
 
+protected:
+    void keyReleaseEvent( QKeyEvent *pEvent );
+
 private:
     StreamReader     *m_pStratuxStream;
-    AHRS::TrafficDisp m_eTrafficDisp;
 
 private slots:
-    void status( const QColor &statusColor, const QString &qsStatusText );
     void init();
-    void stratuxConnected( bool bConnected );
-    void trafficToggle();
-
-signals:
-    void trafficToggled( AHRS::TrafficDisp );
+    void statusUpdate( bool bStratux, bool bAHRS, bool bGPS, bool bTraffic, bool bWeather );
+    void menu();
 };
 
 #endif // __AHRSMAINWIN_H__

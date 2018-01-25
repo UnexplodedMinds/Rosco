@@ -50,7 +50,7 @@ struct StratuxSituation
     double    dAHRSGLoadMin;
     double    dAHRSGLoadMax;
     QDateTime lastAHRSAttTime;
-    int       iAHRSstatus;
+    int       iAHRSStatus;
 };
 
 
@@ -79,5 +79,18 @@ struct StratuxTraffic
     bool      bHasADSB;
 };
 
+
+struct StratuxStatus
+{
+    int  iUATTrafficTracking;
+    int  iESTrafficTracking;
+    int  iGPSSatsLocked;
+    bool bGPSConnected;
+    int  iUATMETARTotal;
+    int  iUATTAFTotal;
+    int  iUATNEXRADTotal;
+    int  iUATSIGMETTotal;
+    int  iUATPIREPTotal;
+};
 
 #endif // __STRATUXSTREAMS_H__

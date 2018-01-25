@@ -29,6 +29,7 @@ Canvas::Canvas( double dWidth, double dHeight )
     m_preCalc.dH2 = dHeight / 2.0;
     m_preCalc.dH4 = dHeight / 4.0;
     m_preCalc.dH5 = dHeight / 5.0;
+    m_preCalc.dH7 = dHeight / 7.0;
     m_preCalc.dH10 = dHeight / 10.0;
     m_preCalc.dH20 = dHeight / 20.0;
     m_preCalc.dH160 = dHeight / 160.0;
@@ -36,6 +37,7 @@ Canvas::Canvas( double dWidth, double dHeight )
     m_preCalc.dW2 = dWidth / 2.0;
     m_preCalc.dW4 = dWidth / 4.0;
     m_preCalc.dW5 = dWidth / 5.0;
+    m_preCalc.dW7 = dWidth / 7.0;
     m_preCalc.dW10 = dWidth / 10.0;
     m_preCalc.dW20 = dWidth / 20.0;
 

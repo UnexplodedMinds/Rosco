@@ -26,6 +26,8 @@ public:
     explicit AHRSCanvas( QWidget *parent = nullptr );
     ~AHRSCanvas();
 
+    void trafficToggled( AHRS::TrafficDisp eDispType );
+
 public slots:
     void init();
     void situation( StratuxSituation s );
@@ -35,6 +37,7 @@ protected:
     void resizeEvent( QResizeEvent *pEvent );
     void paintEvent( QPaintEvent *pEvent );
     void mousePressEvent( QMouseEvent *pEvent );
+    void timerEvent( QTimerEvent *pEvent );
 
 private:
     void   buildRollIndicator();
@@ -64,9 +67,11 @@ private:
     QMap<int, StratuxTraffic> m_trafficMap;
     AHRS::TrafficDisp         m_eTrafficDisp;
     bool                      m_bHideGPSLocation;
+    bool                      m_iDispTimer;
+    bool                      m_bUpdated;
 
-private slots:
-    void trafficToggled( AHRS::TrafficDisp eDispType );
+signals:
+    void simpleStatus( bool, bool, bool, bool ); // Stratux connected, Weather available, AHRS situation available, Traffic available, GPS position available
 };
 
 #endif // __AHRSCANVAS_H__

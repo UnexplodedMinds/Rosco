@@ -19,13 +19,12 @@ extern bool g_bEmulated;
 
 StreamReader::StreamReader( QObject *parent )
     : QObject( parent ),
-      m_bConnected( false ),
-      m_bHaveMyPos( false )
-//    m_dHeadingKludge( 0.0 )   // TESTING ONLY
+      m_bHaveMyPos( false ),
+      m_bAHRSStatus( false ),
+      m_bStratuxStatus( false ),
+      m_bGPSStatus( false ),
+      m_bWeatherStatus( false )
 {
-    // For now consider connecting to this stream as successful connection to all of them
-    connect( &m_stratuxSituation, SIGNAL( connected() ), this, SLOT( situationConnected() ) );
-    connect( &m_stratuxSituation, SIGNAL( disconnected() ), this, SLOT( situationDisconnected() ) );
 }
 
 
@@ -37,65 +36,12 @@ StreamReader::~StreamReader()
 // Open the websocket URLs from the Stratux
 void StreamReader::connectStreams()
 {
-/*
-    QHostAddress        address;
-    QList<QHostAddress> listAddr = QNetworkInterface::allAddresses();
-
-    emit status( Qt::yellow, "CONNECTING..." );
-
-    foreach( address, listAddr )
-    {
-        if( (address.protocol() == QAbstractSocket::IPv4Protocol) && (address != QHostAddress( QHostAddress::LocalHost )) )
-            break;
-    }
-
-    QStringList qslIP = address.toString().split( '.' );
-    QString     qsIP;
-    int         iIP, i;
-    bool        bFound = false;
-
-    // Find the stratux and break out with a successful connection to the stream
-    for( iIP = 2; iIP < 256; iIP++ )
-    {
-        qslIP.removeLast();
-        qsIP = qslIP.join( '.' );
-        qsIP.append( QString( ".%1" ).arg( iIP ) );
-        qslIP = qsIP.split( '.' );
-        m_stratuxSituation.open( QUrl( QString( "ws://%1/situation" ).arg( qsIP ) ) );
-        for( i = 0; i < 1000; i++ )
-        {
-            QApplication::processEvents();
-            if( m_bConnected )
-            {
-                bFound = true;
-                break;
-            }
-        }
-        if( bFound )
-            break;
-    }
-*/
     m_stratuxSituation.open( QUrl( QString( "ws://192.168.10.1/situation" ) ) );
     m_stratuxTraffic.open( QUrl( QString( "ws://192.168.10.1/traffic" ) ) );
+    m_stratuxStatus.open( QUrl( QString( "ws://192.168.10.1/status" ) ) );
     connect( &m_stratuxTraffic, SIGNAL( textMessageReceived( const QString& ) ), this, SLOT( trafficUpdate( const QString& ) ) );
-}
-
-
-// Connected to situation stream
-void StreamReader::situationConnected()
-{
-    m_bConnected = true;
-    emit status( Qt::green, "CONNECTED TO STRATUX" );
-    emit stratuxConnected( true );
     connect( &m_stratuxSituation, SIGNAL( textMessageReceived( const QString& ) ), this, SLOT( situationUpdate( const QString& ) ) );
-}
-
-
-// Disconnected from situation stream
-void StreamReader::situationDisconnected()
-{
-    emit status( QColor( 255, 100, 100 ), "DISCONNECTED FROM STRATUX" );
-    emit stratuxConnected( false );
+    connect( &m_stratuxStatus, SIGNAL( textMessageReceived( const QString& ) ), this, SLOT( statusUpdate( const QString& ) ) );
 }
 
 
@@ -122,7 +68,7 @@ void StreamReader::situationUpdate( const QString &qsMessage )
 
         // Tag and value - see https://github.com/cyoung/stratux/blob/master/notes/app-vendor-integration.md
         qsTag = qslThisField.first().remove( 0, 1 ).trimmed().remove( '\"' );
-        qsVal = qslThisField.last().trimmed().remove( '\"' );
+        qsVal = qslThisField.last().trimmed().remove( '\"' ).remove( '}' );
         dVal = qsVal.toDouble();
         iVal = qsVal.toInt();
 
@@ -189,7 +135,7 @@ void StreamReader::situationUpdate( const QString &qsMessage )
         else if( qsTag == "AHRSGyroHeading" )
             situation.dAHRSGyroHeading = dVal;
         else if( qsTag == "AHRSMagHeading" )
-            situation.dAHRSMagHeading = dVal; // m_dHeadingKludge; // TESTING ONLY
+            situation.dAHRSMagHeading = dVal;
         else if( qsTag == "AHRSSlipSkid" )
             situation.dAHRSSlipSkid = dVal;
         else if( qsTag == "AHRSTurnRate" )
@@ -203,7 +149,7 @@ void StreamReader::situationUpdate( const QString &qsMessage )
         else if( qsTag == "AHRSLastAttitudeTime" )
             situation.lastAHRSAttTime.fromString( qsVal, Qt::ISODate );
         else if( qsTag == "AHRSStatus" )
-            situation.iAHRSstatus = iVal;
+            situation.iAHRSStatus = iVal;
     }
 
     while( situation.dAHRSGyroHeading > 360 )
@@ -218,61 +164,11 @@ void StreamReader::situationUpdate( const QString &qsMessage )
         m_dMyLong = situation.dGPSlong;
     }
 
+    m_bAHRSStatus = (situation.iAHRSStatus > 0);
+
     emit newSituation( situation );
-
-    // TESTING ONLY
-/*
-    m_dHeadingKludge += 0.5;
-    if( m_dHeadingKludge >= 360.0 )
-        m_dHeadingKludge = 0.0;
-*/
 }
 
-
-void StreamReader::initSituation( StratuxSituation &situation )
-{
-    QDateTime nullDateTime( QDate( 2000, 1, 1 ), QTime( 0, 0, 0 ) );
-
-    situation.dLastGPSFixSinceMidnight = 0.0;
-    situation.dGPSlat = 0.0;
-    situation.dGPSlong = 0.0;
-    situation.iGPSFixQuality = 0;
-    situation.dGPSHeightAboveEllipsoid = 0.0;
-    situation.dGPSGeoidSep = 0.0;
-    situation.iGPSSats = 0;
-    situation.iGPSSatsTracked = 0;
-    situation.iGPSSatsSeen = 0;
-    situation.dGPSHorizAccuracy = 0.0;
-    situation.iGPSNACp = 0;
-    situation.dGPSAltMSL = 0;
-    situation.dGPSVertAccuracy = 0.0;
-    situation.dGPSVertSpeed = 0.0;
-    situation.lastGPSFixTime = nullDateTime;
-    situation.dGPSTrueCourse = 0.0;
-    situation.dGPSTurnRate = 0.0;
-    situation.dGPSGroundSpeed = 0.0;
-    situation.lastGPSGroundTrackTime = nullDateTime;
-    situation.gpsDateTime = nullDateTime;
-    situation.lastGPSTimeStratuxTime = nullDateTime;
-    situation.lastValidNMEAMessageTime = nullDateTime;
-    situation.qsLastNMEAMsg = "";
-    situation.iGPSPosSampleRate = 0;
-    situation.dBaroTemp = 0.0;
-    situation.dBaroPressAlt = 0.0;
-    situation.dBaroVertSpeed = 0.0;
-    situation.lastBaroMeasTime = nullDateTime;
-    situation.dAHRSpitch = 0.0;
-    situation.dAHRSroll = 0.0;
-    situation.dAHRSGyroHeading = 0.0;
-    situation.dAHRSMagHeading = 0.0;
-    situation.dAHRSSlipSkid = 0.0;
-    situation.dAHRSTurnRate = 0.0;
-    situation.dAHRSGLoad = 0.0;
-    situation.dAHRSGLoadMin = 0.0;
-    situation.dAHRSGLoadMax = 0.0;
-    situation.lastAHRSAttTime = nullDateTime;
-    situation.iAHRSstatus = 0;
-}
 
 // Updates from the traffic stream
 // This is where the string is received from stratux and translated to the X-Plane 11 protocol and pushed back out on the X-Plane UDP port
@@ -303,7 +199,7 @@ void StreamReader::trafficUpdate( const QString &qsMessage )
 
         // Tag and value - see https://github.com/cyoung/stratux/blob/master/notes/app-vendor-integration.md
         qsTag = qslThisField.first().remove( 0, 1 ).trimmed().remove( '\"' );
-        qsVal = qslThisField.last().trimmed().remove( '\"' );
+        qsVal = qslThisField.last().trimmed().remove( '\"' ).remove( '}' );
         dVal = qsVal.toDouble();
         iVal = qsVal.toInt();
         bVal = (qsVal == "true");
@@ -366,6 +262,60 @@ void StreamReader::trafficUpdate( const QString &qsMessage )
 }
 
 
+void StreamReader::statusUpdate( const QString &qsMessage )
+{
+    QStringList   qslFields( qsMessage.split( ',' ) );
+    QString       qsField;
+    QStringList   qslThisField;
+    QString       qsTag;
+    QString       qsVal;
+    int           iVal;
+    bool          bVal;
+    StratuxStatus status;
+
+    initStatus( status );
+
+    foreach( qsField, qslFields )
+    {
+        qslThisField = qsField.split( "\":" );
+        if( qslThisField.count() != 2 )
+            continue;
+
+        // Tag and value - see https://github.com/cyoung/stratux/blob/master/notes/app-vendor-integration.md
+        qsTag = qslThisField.first().remove( 0, 1 ).trimmed().remove( '\"' );
+        qsVal = qslThisField.last().trimmed().remove( '\"' ).remove( '}' );
+        iVal = qsVal.toInt();
+        bVal = (qsVal == "true");
+
+        if( qsTag == "UAT_traffic_targets_tracking" )
+            status.iUATTrafficTracking = iVal;
+        else if( qsTag == "ES_traffic_targets_tracking" )
+            status.iESTrafficTracking = iVal;
+        else if( qsTag == "GPS_satellites_locked" )
+            status.iGPSSatsLocked = iVal;
+        else if( qsTag == "GPS_connected" )
+            status.bGPSConnected = bVal;
+        else if( qsTag == "UAT_METAR_total" )
+            status.iUATMETARTotal = iVal;
+        else if( qsTag == "UAT_TAF_total" )
+            status.iUATTAFTotal = iVal;
+        else if( qsTag == "UAT_NEXRAD_total" )
+            status.iUATNEXRADTotal = iVal;
+        else if( qsTag == "UAT_SIGMET_total" )
+            status.iUATSIGMETTotal = iVal;
+        else if( qsTag == "UAT_PIREP_total" )
+            status.iUATPIREPTotal = iVal;
+    }
+
+    m_bStratuxStatus = true;    // If this signal fired then we're at least talking to the Stratux
+    m_bGPSStatus = status.bGPSConnected;
+    m_bWeatherStatus = ((status.iUATMETARTotal > 0) || (status.iUATTAFTotal > 0) || (status.iUATNEXRADTotal > 0) || (status.iUATSIGMETTotal > 0) || (status.iUATPIREPTotal > 0));
+    m_bTrafficStatus = ((status.iUATTrafficTracking > 0) || (status.iESTrafficTracking > 0));
+
+    emit newStatus( m_bStratuxStatus, m_bAHRSStatus, m_bGPSStatus, m_bTrafficStatus, m_bWeatherStatus );
+}
+
+
 void StreamReader::initTraffic( StratuxTraffic &traffic )
 {
     traffic.bOnGround = false;
@@ -390,5 +340,65 @@ void StreamReader::initTraffic( StratuxTraffic &traffic )
     traffic.dDist = 0.0;
     traffic.dAge = 3600.0;
     traffic.bHasADSB = false;
+}
+
+
+void StreamReader::initStatus( StratuxStatus &status )
+{
+    status.bGPSConnected = false;
+    status.iESTrafficTracking = 0;
+    status.iGPSSatsLocked = 0;
+    status.iUATMETARTotal = 0;
+    status.iUATNEXRADTotal = 0;
+    status.iUATPIREPTotal = 0;
+    status.iUATSIGMETTotal = 0;
+    status.iUATTAFTotal = 0;
+    status.iUATTrafficTracking = 0;
+}
+
+
+void StreamReader::initSituation( StratuxSituation &situation )
+{
+    QDateTime nullDateTime( QDate( 2000, 1, 1 ), QTime( 0, 0, 0 ) );
+
+    situation.dLastGPSFixSinceMidnight = 0.0;
+    situation.dGPSlat = 0.0;
+    situation.dGPSlong = 0.0;
+    situation.iGPSFixQuality = 0;
+    situation.dGPSHeightAboveEllipsoid = 0.0;
+    situation.dGPSGeoidSep = 0.0;
+    situation.iGPSSats = 0;
+    situation.iGPSSatsTracked = 0;
+    situation.iGPSSatsSeen = 0;
+    situation.dGPSHorizAccuracy = 0.0;
+    situation.iGPSNACp = 0;
+    situation.dGPSAltMSL = 0;
+    situation.dGPSVertAccuracy = 0.0;
+    situation.dGPSVertSpeed = 0.0;
+    situation.lastGPSFixTime = nullDateTime;
+    situation.dGPSTrueCourse = 0.0;
+    situation.dGPSTurnRate = 0.0;
+    situation.dGPSGroundSpeed = 0.0;
+    situation.lastGPSGroundTrackTime = nullDateTime;
+    situation.gpsDateTime = nullDateTime;
+    situation.lastGPSTimeStratuxTime = nullDateTime;
+    situation.lastValidNMEAMessageTime = nullDateTime;
+    situation.qsLastNMEAMsg = "";
+    situation.iGPSPosSampleRate = 0;
+    situation.dBaroTemp = 0.0;
+    situation.dBaroPressAlt = 0.0;
+    situation.dBaroVertSpeed = 0.0;
+    situation.lastBaroMeasTime = nullDateTime;
+    situation.dAHRSpitch = 0.0;
+    situation.dAHRSroll = 0.0;
+    situation.dAHRSGyroHeading = 0.0;
+    situation.dAHRSMagHeading = 0.0;
+    situation.dAHRSSlipSkid = 0.0;
+    situation.dAHRSTurnRate = 0.0;
+    situation.dAHRSGLoad = 0.0;
+    situation.dAHRSGLoadMin = 0.0;
+    situation.dAHRSGLoadMax = 0.0;
+    situation.lastAHRSAttTime = nullDateTime;
+    situation.iAHRSStatus = 0;
 }
 

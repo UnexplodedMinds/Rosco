@@ -7,9 +7,10 @@ Stratux AHRS Display
 
 #include "TrafficMath.h"
 
-#define ToRad 0.017453292519943296
-#define TwoPi 6.283185307179586477
-#define ToDeg 57.29577951308232088
+#define ToRad      0.017453292519943296
+#define TwoPi      6.283185307179586477
+#define ToDeg      57.29577951308232088
+#define MetersToNM 0.000539957
 
 
 TrafficMath::BearingDist TrafficMath::haversine( double dLat1, double dLong1, double dLat2, double dLong2 )
@@ -23,7 +24,7 @@ TrafficMath::BearingDist TrafficMath::haversine( double dLat1, double dLong1, do
     double dDistN = deltaLat * dRadiusEarth;
     double dDistE = deltaLong * dRadiusEarth * fabs( cos( dAvgLat ) );
 
-    ret.dDistance = pow( dDistN * dDistN + dDistE * dDistE, 0.5 ) * 0.000539957;    // Meters to NM
+    ret.dDistance = pow( dDistN * dDistN + dDistE * dDistE, 0.5 ) * MetersToNM;
     ret.dBearing = degHeading( atan2( dDistE, dDistN ) );
 
     return ret;

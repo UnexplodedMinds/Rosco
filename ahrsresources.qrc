@@ -8,5 +8,9 @@
         <file>resources/HeadingIcon.png</file>
         <file>resources/WindIcon.png</file>
         <file>resources/Elevation.png</file>
+        <file>resources/Rosco.png</file>
+        <file>resources/Settings.png</file>
+        <file>resources/Traffic.png</file>
+        <file>resources/StayOn.png</file>
     </qresource>
 </RCC>
