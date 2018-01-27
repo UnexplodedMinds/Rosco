@@ -27,11 +27,14 @@ public:
     ~AHRSCanvas();
 
     void trafficToggled( AHRS::TrafficDisp eDispType );
+    void weatherToggled();
+    void suspend( bool bSuspend );
 
 public slots:
     void init();
     void situation( StratuxSituation s );
     void traffic( int iICAO, StratuxTraffic t );
+    void weather( StratuxWeather w );
 
 protected:
     void resizeEvent( QResizeEvent *pEvent );
@@ -51,6 +54,8 @@ private:
 
     bool                      m_bInitialized;
     StratuxSituation          m_situation;
+    StratuxWeather            m_weather;
+    QMap<int, StratuxTraffic> m_trafficMap;
     QPixmap                   m_planeIcon;
     QPixmap                   m_headIcon;
     QPixmap                   m_windIcon;
@@ -64,11 +69,11 @@ private:
     QPixmap                   m_trafficAltKey;
     double                    m_dDPIMult;
     int                       m_iAltSpeedOffset;
-    QMap<int, StratuxTraffic> m_trafficMap;
     AHRS::TrafficDisp         m_eTrafficDisp;
     bool                      m_bHideGPSLocation;
     bool                      m_iDispTimer;
     bool                      m_bUpdated;
+    bool                      m_bShowWeather;
 
 signals:
     void simpleStatus( bool, bool, bool, bool ); // Stratux connected, Weather available, AHRS situation available, Traffic available, GPS position available

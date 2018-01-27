@@ -23,14 +23,15 @@ public:
     explicit StreamReader( QObject *parent );
     ~StreamReader();
 
-public slots:
     void connectStreams();
+    void disconnectStreams();
+
+    static void initTraffic( StratuxTraffic &traffic );
+    static void initSituation( StratuxSituation &situation );
+    static void initStatus( StratuxStatus &status );
+    static void initWeather( StratuxWeather &weather );
 
 private:
-    void initTraffic( StratuxTraffic &traffic );
-    void initSituation( StratuxSituation &situation );
-    void initStatus( StratuxStatus &status );
-
     bool          m_bHaveMyPos;
     bool          m_bAHRSStatus;
     bool          m_bStratuxStatus;
@@ -40,6 +41,7 @@ private:
     QWebSocket    m_stratuxSituation;
     QWebSocket    m_stratuxTraffic;
     QWebSocket    m_stratuxStatus;
+    QWebSocket    m_stratuxWeather;
     double        m_dMyLat;
     double        m_dMyLong;
 
@@ -47,11 +49,13 @@ private slots:
     void situationUpdate( const QString &qsMessage );
     void trafficUpdate( const QString &qsMessage );
     void statusUpdate( const QString &qsMessage );
+    void weatherUpdate( const QString &qsMessage );
 
 signals:
     void newSituation( StratuxSituation );
-    void newTraffic( int, StratuxTraffic );     // ICAO, Rest of traffic struct
-    void newStatus( bool, bool, bool, bool, bool );   // Stratux available, AHRS available, GPS available, Traffic available, Weather available
+    void newTraffic( int, StratuxTraffic );             // ICAO, Rest of traffic struct
+    void newStatus( bool, bool, bool, bool, bool );     // Stratux available, AHRS available, GPS available, Traffic available, Weather available
+    void newWeather( StratuxWeather );
 };
 
 #endif // __STREAMREADER_H__

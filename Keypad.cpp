@@ -3,6 +3,8 @@ Stratux AHRS Display
 (c) 2018 Unexploded Minds
 */
 
+#include <QKeyEvent>
+
 #include "Keypad.h"
 
 
@@ -86,3 +88,16 @@ int Keypad::value()
 {
     return m_pValueLabel->text().toInt();
 }
+
+
+// Android back key accepts the dialog (B Key on emulator)
+void Keypad::keyReleaseEvent( QKeyEvent *pEvent )
+{
+    if( (pEvent->key() == Qt::Key_Back) || (pEvent->key() == Qt::Key_B) )
+    {
+        pEvent->accept();
+        QDialog::keyReleaseEvent( pEvent );
+        reject();
+    }
+}
+

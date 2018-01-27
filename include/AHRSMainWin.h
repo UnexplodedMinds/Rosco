@@ -28,12 +28,14 @@ protected:
     void keyReleaseEvent( QKeyEvent *pEvent );
 
 private:
-    StreamReader     *m_pStratuxStream;
+    StreamReader *m_pStratuxStream;
+    bool          m_bStartup;
 
 private slots:
-    void init();
+    void appStateChanged( Qt::ApplicationState eState );
     void statusUpdate( bool bStratux, bool bAHRS, bool bGPS, bool bTraffic, bool bWeather );
     void menu();
+    void weather();
 };
 
 #endif // __AHRSMAINWIN_H__

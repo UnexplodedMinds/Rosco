@@ -15,6 +15,7 @@ Stratux AHRS Display
 #include "BugSelector.h"
 #include "Keypad.h"
 #include "AHRSMainWin.h"
+#include "StreamReader.h"
 
 
 extern bool g_bEmulated;
@@ -33,8 +34,12 @@ AHRSCanvas::AHRSCanvas( QWidget *parent )
       m_pVertSpeedTape( 0 ),
       m_eTrafficDisp( AHRS::AllTraffic ),
       m_bHideGPSLocation( false ),
-      m_bUpdated( false )
+      m_bUpdated( false ),
+      m_bShowWeather( false )
 {
+    StreamReader::initWeather( m_weather );
+    StreamReader::initSituation( m_situation );
+
     m_planeIcon.load( ":/graphics/resources/Plane.png" );
     m_headIcon.load( ":/icons/resources/HeadingIcon.png" );
     m_windIcon.load( ":/icons/resources/WindIcon.png" );
@@ -106,9 +111,31 @@ void AHRSCanvas::init()
     buildAltTape();
     buildSpeedTape();
     buildVertSpeedTape();
-    startTimer( 1000 );     // Just drives updating the canvas if we're not currently receiving anything new.
-                            // The only way this happens is if we're not talking to the Stratux whatsoever.
+    m_iDispTimer = startTimer( 1000 );     // Just drives updating the canvas if we're not currently receiving anything new.
     m_bInitialized = true;
+}
+
+
+void AHRSCanvas::suspend( bool bSuspend )
+{
+    if( bSuspend )
+    {
+        if( m_iDispTimer != 0 )
+            killTimer( m_iDispTimer );
+        m_iDispTimer = 0;
+    }
+    else
+    {
+        if( m_iDispTimer != 0 )
+            killTimer( m_iDispTimer );
+        m_bInitialized = false;
+        delete m_pRollIndicator;
+        delete m_pHeadIndicator;
+        delete m_pAltTape;
+        delete m_pSpeedTape;
+        delete m_pVertSpeedTape;
+        init();
+    }
 }
 
 
@@ -402,6 +429,26 @@ void AHRSCanvas::paintEvent( QPaintEvent *pEvent )
 
     if( m_eTrafficDisp != AHRS::NoTraffic )
         updateTraffic( &ahrs, c.dH2 + (c.iLargeFontHeight * 2.0) + 30.0 );
+
+    if( m_bShowWeather )
+    {
+        linePen.setColor( Qt::black );
+        linePen.setWidth( 3 );
+        ahrs.setPen( linePen );
+        ahrs.setBrush( QColor( 255, 255, 255, 225 ) );
+        ahrs.drawRect( 50, 50, c.dW - 100, c.dH - 100 );
+        ahrs.setFont( med );
+        if( m_weather.prodTime.date() == QDate( 2000, 1, 1 ) )
+            ahrs.drawText( 100, 100, "No Weather Data Available" );
+        else
+        {
+            ahrs.drawText( 100, 100, m_weather.prodTime.toString() );
+            ahrs.drawText( 100, 100 + (c.iMedFontHeight * 3), m_weather.qsType );
+            ahrs.drawText( 100, 100 + (c.iMedFontHeight * 5), m_weather.qsLocation );
+            ahrs.drawText( 100, 100 + (c.iMedFontHeight * 7), m_weather.qsData );
+            ahrs.drawText( 100, 100 + (c.iMedFontHeight * 9), m_weather.qsLastMessage );
+        }
+    }
 }
 
 
@@ -487,7 +534,6 @@ void AHRSCanvas::updateTraffic( QPainter *pAhrs, double dListPos )
             pAhrs->drawPoint( c.dW - trafficRect.width() - 30.0, dListPos - (c.iTinyFontHeight / 2) + 3 );
         }
     }
-
 }
 
 
@@ -527,16 +573,33 @@ void AHRSCanvas::traffic( int iICAO, StratuxTraffic t )
 }
 
 
+void AHRSCanvas::weather( StratuxWeather w )
+{
+    m_weather = w;
+    update();
+}
+
+
 void AHRSCanvas::mousePressEvent( QMouseEvent *pEvent )
 {
     if( pEvent == 0 )
         return;
 
+    // Tapping anywhere on the screen when the weather is active will turn it off
+    if( m_bShowWeather )
+    {
+        m_bShowWeather = false;
+        update();
+        return;
+    }
+
+    // Otherwise we're looking for specific spots
     CanvasConstants c = m_pCanvas->contants();
     QPoint          pressPt( pEvent->pos() );
     QRect           headRect( c.dW2 - (m_pHeadIndicator->width() / 2), c.dH - m_pHeadIndicator->height() - 10.0, m_pHeadIndicator->width(), m_pHeadIndicator->height() );
     QRect           gpsRect( c.dW - c.dW5, c.dH2, c.dW5, c.iLargeFontHeight * 2.0 );
 
+    // User pressed on the heading indicator
     if( headRect.contains( pressPt ) )
     {
         int         iButton = -1;
@@ -575,6 +638,8 @@ void AHRSCanvas::mousePressEvent( QMouseEvent *pEvent )
                 m_iWindBugAngle = -1;
         }
     }
+    // This is mainly for making videos to hide your exact location but it could be used
+    // for displaying other GPS details like satellite fixes, etc.
     else if( gpsRect.contains( pressPt ) )
         m_bHideGPSLocation = (!m_bHideGPSLocation);
 
@@ -583,6 +648,9 @@ void AHRSCanvas::mousePressEvent( QMouseEvent *pEvent )
 }
 
 
+// Build the altitude tape pixmap
+// Note that there are pixmap size limits on Android that appear to be smaller than Windows and X11
+// so there are font size limitations in order not to exceed them.
 void AHRSCanvas::buildAltTape()
 {
     QPainter        ahrs( m_pAltTape );
@@ -611,6 +679,7 @@ void AHRSCanvas::buildAltTape()
 }
 
 
+// Build the vertical speed tape pixmap
 void AHRSCanvas::buildVertSpeedTape()
 {
     QPainter ahrs( m_pVertSpeedTape );
@@ -638,6 +707,7 @@ void AHRSCanvas::buildVertSpeedTape()
 }
 
 
+// Build the air speed (ground speed actually since this is GPS based without any pitot-static system)
 void AHRSCanvas::buildSpeedTape()
 {
     QPainter        ahrs( m_pSpeedTape );
@@ -664,6 +734,7 @@ void AHRSCanvas::buildSpeedTape()
 }
 
 
+// Build the roll indicator (the arc scale at the top)
 void AHRSCanvas::buildRollIndicator()
 {
     QPainter     ahrs( m_pRollIndicator );
@@ -746,6 +817,7 @@ void AHRSCanvas::buildRollIndicator()
 }
 
 
+// Build the round heading indicator
 void AHRSCanvas::buildHeadingIndicator()
 {
     QPainter ahrs( m_pHeadIndicator );
@@ -841,10 +913,19 @@ void AHRSCanvas::buildHeadingIndicator()
 }
 
 
+// Traffic setting changed (All, ADSB-only, None)
 void AHRSCanvas::trafficToggled( AHRS::TrafficDisp eDispType )
 {
     m_eTrafficDisp = eDispType;
     m_bUpdated = true;
+    update();
+}
+
+
+// Weather turned on/off
+void AHRSCanvas::weatherToggled()
+{
+    m_bShowWeather = (!m_bShowWeather);
     update();
 }
 

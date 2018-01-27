@@ -20,6 +20,9 @@ public:
 
     int value();
 
+protected:
+    void keyReleaseEvent( QKeyEvent *pEvent );
+
 private slots:
     void keypadClick();
 };

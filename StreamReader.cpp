@@ -42,6 +42,20 @@ void StreamReader::connectStreams()
     connect( &m_stratuxTraffic, SIGNAL( textMessageReceived( const QString& ) ), this, SLOT( trafficUpdate( const QString& ) ) );
     connect( &m_stratuxSituation, SIGNAL( textMessageReceived( const QString& ) ), this, SLOT( situationUpdate( const QString& ) ) );
     connect( &m_stratuxStatus, SIGNAL( textMessageReceived( const QString& ) ), this, SLOT( statusUpdate( const QString& ) ) );
+    connect( &m_stratuxWeather, SIGNAL( textMessageReceived( const QString& ) ), this, SLOT( weatherUpdate( const QString& ) ) );
+}
+
+
+void StreamReader::disconnectStreams()
+{
+    disconnect( &m_stratuxTraffic, SIGNAL( textMessageReceived( const QString& ) ), this, SLOT( trafficUpdate( const QString& ) ) );
+    disconnect( &m_stratuxSituation, SIGNAL( textMessageReceived( const QString& ) ), this, SLOT( situationUpdate( const QString& ) ) );
+    disconnect( &m_stratuxStatus, SIGNAL( textMessageReceived( const QString& ) ), this, SLOT( statusUpdate( const QString& ) ) );
+    disconnect( &m_stratuxWeather, SIGNAL( textMessageReceived( const QString& ) ), this, SLOT( weatherUpdate( const QString& ) ) );
+    m_stratuxSituation.close();
+    m_stratuxTraffic.close();
+    m_stratuxStatus.close();
+    m_stratuxWeather.close();
 }
 
 
@@ -313,6 +327,59 @@ void StreamReader::statusUpdate( const QString &qsMessage )
     m_bTrafficStatus = ((status.iUATTrafficTracking > 0) || (status.iESTrafficTracking > 0));
 
     emit newStatus( m_bStratuxStatus, m_bAHRSStatus, m_bGPSStatus, m_bTrafficStatus, m_bWeatherStatus );
+}
+
+
+void StreamReader::weatherUpdate( const QString &qsMessage )
+{
+    QStringList    qslFields( qsMessage.split( ',' ) );
+    QString        qsField;
+    QStringList    qslThisField;
+    QString        qsTag;
+    QString        qsVal;
+    StratuxWeather weather;
+
+    initWeather( weather );
+
+    // Testing only
+    weather.qsLastMessage = qsMessage;
+
+    foreach( qsField, qslFields )
+    {
+        qslThisField = qsField.split( "\":" );
+        if( qslThisField.count() != 2 )
+            continue;
+
+        // Tag and value - see https://github.com/cyoung/stratux/blob/master/notes/app-vendor-integration.md
+        qsTag = qslThisField.first().remove( 0, 1 ).trimmed().remove( '\"' );
+        qsVal = qslThisField.last().trimmed().remove( '\"' ).remove( '}' );
+
+        if( qsTag == "Type" )
+            weather.qsType = qsVal;
+        else if( qsTag == "Location" )
+            weather.qsLocation = qsVal;
+        else if( qsTag == "Time" )
+            weather.prodTime.fromString( qsVal );
+        else if( qsTag == "Data" )
+            weather.qsData = qsVal;
+    }
+
+    m_bStratuxStatus = true;    // If this signal fired then we're at least talking to the Stratux
+    m_bWeatherStatus = true;
+
+    emit newWeather( weather );
+    emit newStatus( m_bStratuxStatus, m_bAHRSStatus, m_bGPSStatus, m_bTrafficStatus, m_bWeatherStatus );
+
+}
+
+
+void StreamReader::initWeather( StratuxWeather &weather )
+{
+    weather.prodTime.setDate( QDate( 2000, 1, 1 ) );
+    weather.prodTime.setTime( QTime( 0, 0, 0 ) );
+    weather.qsType.clear();
+    weather.qsLocation.clear();
+    weather.qsData.clear();
 }
 
 

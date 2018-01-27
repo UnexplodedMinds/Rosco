@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>500</width>
-    <height>600</height>
+    <height>800</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,13 +19,13 @@
   <property name="minimumSize">
    <size>
     <width>500</width>
-    <height>600</height>
+    <height>800</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>500</width>
-    <height>600</height>
+    <height>800</height>
    </size>
   </property>
   <property name="palette">
@@ -149,7 +149,7 @@
       <string> EXIT ROSCO </string>
      </property>
      <property name="icon">
-      <iconset resource="ahrsresources.qrc">
+      <iconset resource="../AHRSResources.qrc">
        <normaloff>:/icons/resources/Rosco.png</normaloff>:/icons/resources/Rosco.png</iconset>
      </property>
      <property name="iconSize">
@@ -189,7 +189,7 @@
       <string> ALL TRAFFIC</string>
      </property>
      <property name="icon">
-      <iconset resource="ahrsresources.qrc">
+      <iconset resource="../AHRSResources.qrc">
        <normaloff>:/icons/resources/Traffic.png</normaloff>:/icons/resources/Traffic.png</iconset>
      </property>
      <property name="iconSize">
@@ -223,7 +223,7 @@
       <string> STAY ON        </string>
      </property>
      <property name="icon">
-      <iconset resource="ahrsresources.qrc">
+      <iconset resource="../AHRSResources.qrc">
        <normaloff>:/icons/resources/StayOn.png</normaloff>:/icons/resources/StayOn.png</iconset>
      </property>
      <property name="iconSize">
@@ -238,7 +238,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="m_pSettingsButton">
+    <widget class="QPushButton" name="m_pResetLevelButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
@@ -254,10 +254,10 @@
       </font>
      </property>
      <property name="text">
-      <string> SETTINGS       </string>
+      <string>RESET LEVEL </string>
      </property>
      <property name="icon">
-      <iconset resource="ahrsresources.qrc">
+      <iconset resource="../AHRSResources.qrc">
        <normaloff>:/icons/resources/Settings.png</normaloff>:/icons/resources/Settings.png</iconset>
      </property>
      <property name="iconSize">
@@ -274,7 +274,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="ahrsresources.qrc"/>
+  <include location="../AHRSResources.qrc"/>
  </resources>
  <connections/>
 </ui>

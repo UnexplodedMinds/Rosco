@@ -1,6 +1,9 @@
 /*
 Stratux AHRS Display
 (c) 2018 Unexploded Minds
+
+AHRSMainWin handles connecting/disconnecting the stratux streams, the menu button
+and the status indicators.  It also handles Android application state changes.
 */
 
 #include <QTimer>
@@ -27,13 +30,14 @@ extern bool g_bEmulated;
 
 AHRSMainWin::AHRSMainWin( QWidget *parent )
     : QMainWindow( parent ),
-      m_pStratuxStream( new StreamReader( this ) )
+      m_pStratuxStream( new StreamReader( this ) ),
+      m_bStartup( true )
 {
     setupUi( this );
 
     connect( m_pMenuButton, SIGNAL( clicked() ), this, SLOT( menu() ) );
-
-    QTimer::singleShot( 100, this, SLOT( init() ) );
+    connect( m_pWeatherButton, SIGNAL( clicked() ), this, SLOT( weather() ) );
+    connect( qApp, SIGNAL( applicationStateChanged( Qt::ApplicationState ) ), this, SLOT( appStateChanged( Qt::ApplicationState ) ) );
 }
 
 
@@ -44,12 +48,33 @@ AHRSMainWin::~AHRSMainWin()
 }
 
 
-void AHRSMainWin::init()
+void AHRSMainWin::appStateChanged( Qt::ApplicationState eState )
 {
-    connect( m_pStratuxStream, SIGNAL( newSituation( StratuxSituation ) ), m_pAHRSDisp, SLOT( situation( StratuxSituation ) ) );
-    connect( m_pStratuxStream, SIGNAL( newTraffic( int, StratuxTraffic ) ), m_pAHRSDisp, SLOT( traffic( int, StratuxTraffic ) ) );
-    connect( m_pStratuxStream, SIGNAL( newStatus( bool, bool, bool, bool, bool ) ), this, SLOT( statusUpdate( bool, bool, bool, bool, bool ) ) );
-    m_pStratuxStream->connectStreams();
+    switch( eState )
+    {
+        case Qt::ApplicationSuspended:
+        case Qt::ApplicationHidden:
+        case Qt::ApplicationInactive:
+        {
+            m_pStratuxStream->disconnectStreams();
+            m_pAHRSDisp->suspend( true );
+            break;
+        }
+        default:
+        {
+            if( m_bStartup )
+            {
+                connect( m_pStratuxStream, SIGNAL( newSituation( StratuxSituation ) ), m_pAHRSDisp, SLOT( situation( StratuxSituation ) ) );
+                connect( m_pStratuxStream, SIGNAL( newTraffic( int, StratuxTraffic ) ), m_pAHRSDisp, SLOT( traffic( int, StratuxTraffic ) ) );
+                connect( m_pStratuxStream, SIGNAL( newWeather( StratuxWeather ) ), m_pAHRSDisp, SLOT( weather( StratuxWeather ) ) );
+                connect( m_pStratuxStream, SIGNAL( newStatus( bool, bool, bool, bool, bool ) ), this, SLOT( statusUpdate( bool, bool, bool, bool, bool ) ) );
+            }
+            m_pStratuxStream->connectStreams();
+            m_pAHRSDisp->suspend( false );
+            m_bStartup = false;
+            break;
+        }
+    }
 }
 
 
@@ -72,11 +97,13 @@ void::AHRSMainWin::menu()
     QSettings  config;
     int        iW = width();
     int        iH = height();
+    int        iRet = 0;
 
     dlg.setGeometry( (iW / 2) - 250 + (g_bEmulated ? 2000 : 0), (iH / 2) - 300, 500, 600 );
-    if( dlg.exec() == QDialog::Rejected )
+    iRet = dlg.exec();
+    if( iRet == QDialog::Rejected )
         qApp->closeAllWindows();
-    else
+    else if( iRet == QDialog::Accepted )
     {
         config.beginGroup( "Global" );
         m_pAHRSDisp->trafficToggled( static_cast<AHRS::TrafficDisp>( config.value( "TrafficDisp", static_cast<int>( AHRS::AllTraffic ) ).toInt() ) );
@@ -99,10 +126,19 @@ void::AHRSMainWin::menu()
 }
 
 
+void AHRSMainWin::weather()
+{
+    m_pAHRSDisp->weatherToggled();
+}
+
+
 // Android back key accepts the dialog (B Key on emulator)
 void AHRSMainWin::keyReleaseEvent( QKeyEvent *pEvent )
 {
     if( (pEvent->key() == Qt::Key_Back) || (pEvent->key() == Qt::Key_B) )
         qApp->closeAllWindows();
+    pEvent->accept();
+    QMainWindow::keyReleaseEvent( pEvent );
 }
+
 

@@ -93,4 +93,14 @@ struct StratuxStatus
     int  iUATPIREPTotal;
 };
 
+
+struct StratuxWeather
+{
+    QString   qsType;
+    QString   qsLocation;
+    QDateTime prodTime;
+    QString   qsData;
+    QString   qsLastMessage;    // This is for testing only
+};
+
 #endif // __STRATUXSTREAMS_H__

@@ -5,12 +5,14 @@ Stratux AHRS Display
 
 #include <QSettings>
 #include <QKeyEvent>
+#include <QByteArray>
 
 #include "MenuDialog.h"
 
 
 MenuDialog::MenuDialog( QWidget *pParent )
-    : QDialog( pParent, Qt::Dialog | Qt::FramelessWindowHint )
+    : QDialog( pParent, Qt::Dialog | Qt::FramelessWindowHint ),
+      m_pNetMan( 0 )
 {
     QSettings config;
 
@@ -26,10 +28,21 @@ MenuDialog::MenuDialog( QWidget *pParent )
     connect( m_pExitButton, SIGNAL( clicked() ), this, SLOT( exit() ) );
     connect( m_pTrafficButton, SIGNAL( clicked() ), this, SLOT( traffic() ) );
     connect( m_pStayOnButton, SIGNAL( clicked() ), this, SLOT( stayOn() ) );
-    connect( m_pSettingsButton, SIGNAL( clicked() ), this, SLOT( settings() ) );
+    connect( m_pResetLevelButton, SIGNAL( clicked() ), this, SLOT( resetLevel() ) );
 }
 
 
+MenuDialog::~MenuDialog()
+{
+    if( m_pNetMan != 0 )
+    {
+        delete m_pNetMan;
+        m_pNetMan = 0;
+    }
+}
+
+
+// Change which traffic is displayed
 void MenuDialog::traffic()
 {
     QSettings config;
@@ -48,6 +61,7 @@ void MenuDialog::traffic()
 }
 
 
+// Set screen to stay on or not
 void MenuDialog::stayOn()
 {
     QSettings config;
@@ -61,12 +75,19 @@ void MenuDialog::stayOn()
 }
 
 
-void MenuDialog::settings()
+// Bring up the settings dialog that just has an embedded QtWebEngineView
+void MenuDialog::resetLevel()
 {
-    // TODO: Various UI settings like font sizes will go here
+    QUrl            url( "http://192.168.10.1/cageAHRS" );
+    QNetworkRequest req( url );
+    QByteArray      empty;
+
+    m_pNetMan = new QNetworkAccessManager( this );
+    m_pNetMan->post( req, empty );
 }
 
 
+// Sync the config and close the dialog
 void MenuDialog::exit()
 {
     QSettings config;
@@ -84,11 +105,14 @@ void MenuDialog::keyReleaseEvent( QKeyEvent *pEvent )
         QSettings config;
 
         config.sync();
+        pEvent->accept();
+        QDialog::keyReleaseEvent( pEvent );
         accept();
     }
 }
 
 
+// Apply the stylesheet to the traffic display type button depending on traffic display mode
 void MenuDialog::updateTrafficButton()
 {
     switch( m_eTrafficDisp )
@@ -109,6 +133,7 @@ void MenuDialog::updateTrafficButton()
 }
 
 
+// Apply stylesheet to the stay on button depending on whether it's on or off
 void MenuDialog::updateStayOnButton()
 {
     if( m_bKeepScreenOn )

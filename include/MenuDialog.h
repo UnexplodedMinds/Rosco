@@ -7,6 +7,7 @@ Stratux AHRS Display
 #define __MENUDIALOG_H__
 
 #include <QDialog>
+#include <QNetworkAccessManager>
 
 #include "ui_MenuDialog.h"
 #include "AppDefs.h"
@@ -18,6 +19,7 @@ class MenuDialog : public QDialog, public Ui::MenuDialogBase
 
 public:
     explicit MenuDialog( QWidget *pParent );
+    ~MenuDialog();
 
 protected:
     void keyReleaseEvent( QKeyEvent *pEvent );
@@ -26,13 +28,14 @@ private:
     void updateTrafficButton();
     void updateStayOnButton();
 
-    AHRS::TrafficDisp m_eTrafficDisp;
-    bool              m_bKeepScreenOn;
+    AHRS::TrafficDisp      m_eTrafficDisp;
+    bool                   m_bKeepScreenOn;
+    QNetworkAccessManager *m_pNetMan;
 
 private slots:
     void traffic();
     void stayOn();
-    void settings();
+    void resetLevel();
     void exit();
 };
 
