@@ -28,6 +28,7 @@ and the status indicators.  It also handles Android application state changes.
 extern bool g_bEmulated;
 
 
+// Setup minimal UI elements and make the connections
 AHRSMainWin::AHRSMainWin( QWidget *parent )
     : QMainWindow( parent ),
       m_pStratuxStream( new StreamReader( this ) ),
@@ -41,6 +42,7 @@ AHRSMainWin::AHRSMainWin( QWidget *parent )
 }
 
 
+// Delete the stream reader
 AHRSMainWin::~AHRSMainWin()
 {
     delete m_pStratuxStream;
@@ -48,6 +50,7 @@ AHRSMainWin::~AHRSMainWin()
 }
 
 
+// Android only - handle android application state changes
 void AHRSMainWin::appStateChanged( Qt::ApplicationState eState )
 {
     switch( eState )
@@ -78,6 +81,7 @@ void AHRSMainWin::appStateChanged( Qt::ApplicationState eState )
 }
 
 
+// Status stream is received here instead of the canvas since here is where the indicators are
 void AHRSMainWin::statusUpdate( bool bStratux, bool bAHRS, bool bGPS, bool bTraffic, bool bWeather )
 {
     QString qsOn( "QLabel { border: 5px solid black; background-color: qlineargradient( x1:0, y1:0, x2:0, y2:1, stop: 0 white, stop:1 green ); }" );
@@ -91,6 +95,7 @@ void AHRSMainWin::statusUpdate( bool bStratux, bool bAHRS, bool bGPS, bool bTraf
 }
 
 
+// Display the menu dialog and handle specific returns
 void::AHRSMainWin::menu()
 {
     MenuDialog dlg( this );
@@ -99,7 +104,7 @@ void::AHRSMainWin::menu()
     int        iH = height();
     int        iRet = 0;
 
-    dlg.setGeometry( (iW / 2) - 250 + (g_bEmulated ? 2000 : 0), (iH / 2) - 300, 500, 600 );
+    dlg.setGeometry( (iW / 2) - 250 + (g_bEmulated ? 2000 : 0), (iH / 2) - 500, 500, 1000 );
     iRet = dlg.exec();
     if( iRet == QDialog::Rejected )
         qApp->closeAllWindows();
@@ -107,6 +112,7 @@ void::AHRSMainWin::menu()
     {
         config.beginGroup( "Global" );
         m_pAHRSDisp->trafficToggled( static_cast<AHRS::TrafficDisp>( config.value( "TrafficDisp", static_cast<int>( AHRS::AllTraffic ) ).toInt() ) );
+        // Call the Android function for locking the screen through JNI
 #if defined( Q_OS_ANDROID )
         if( config.value( "KeepScreenOn", false ).toBool() )
         {
@@ -126,6 +132,7 @@ void::AHRSMainWin::menu()
 }
 
 
+// Toggle the weather display on/off
 void AHRSMainWin::weather()
 {
     m_pAHRSDisp->weatherToggled();

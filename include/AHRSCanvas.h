@@ -23,7 +23,7 @@ class AHRSCanvas : public QWidget
     Q_OBJECT
 
 public:
-    explicit AHRSCanvas( QWidget *parent = nullptr );
+    explicit AHRSCanvas( QWidget *parent = 0 );
     ~AHRSCanvas();
 
     void trafficToggled( AHRS::TrafficDisp eDispType );
@@ -40,6 +40,7 @@ protected:
     void resizeEvent( QResizeEvent *pEvent );
     void paintEvent( QPaintEvent *pEvent );
     void mousePressEvent( QMouseEvent *pEvent );
+    void mouseDoubleClickEvent( QMouseEvent *pEvent );
     void timerEvent( QTimerEvent *pEvent );
 
 private:
@@ -74,6 +75,7 @@ private:
     bool                      m_iDispTimer;
     bool                      m_bUpdated;
     bool                      m_bShowWeather;
+    bool                      m_bShowGPSDetails;
 
 signals:
     void simpleStatus( bool, bool, bool, bool ); // Stratux connected, Weather available, AHRS situation available, Traffic available, GPS position available

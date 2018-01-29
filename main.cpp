@@ -9,7 +9,6 @@ Stratux AHRS Display
 
 #include "AHRSMainWin.h"
 
-
 bool g_bEmulated = false;
 
 
@@ -24,9 +23,10 @@ int main( int argc, char *argv[] )
     QCoreApplication::setApplicationName( "Rosco" );
     QGuiApplication::setApplicationDisplayName( "Rosco" );
 
-    guiApp.setAttribute( Qt::AA_EnableHighDpiScaling );
+//  guiApp.setAttribute( Qt::AA_EnableHighDpiScaling );
 
-    // Passed if running as an emulated display
+    // Passed if running as an "emulated" display useful for very fast compile and run
+    // but not always accurate for display on android.
     if( args.count() > 1 )
     {
         if( args.at( 1 ) == "emulated" )

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT += core gui websockets widgets
+QT += core gui websockets widgets network
 
 android {
     QT += androidextras
@@ -30,7 +30,7 @@ SOURCES += \
     Keypad.cpp \
     TrafficMath.cpp \
     Canvas.cpp \
-    MenuDialog.cpp \
+    MenuDialog.cpp
 
 HEADERS += \
     StratuxStreams.h \
@@ -54,7 +54,7 @@ CONFIG += mobility
 MOBILITY = 
 
 RESOURCES += \
-    ahrsresources.qrc
+    AHRSResources.qrc
 
 DISTFILES += \
     AndroidManifest.xml

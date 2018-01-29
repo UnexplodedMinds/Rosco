@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>500</width>
-    <height>800</height>
+    <height>1000</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,13 +19,13 @@
   <property name="minimumSize">
    <size>
     <width>500</width>
-    <height>800</height>
+    <height>1000</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>500</width>
-    <height>800</height>
+    <height>1000</height>
    </size>
   </property>
   <property name="palette">
@@ -255,6 +255,40 @@
      </property>
      <property name="text">
       <string>RESET LEVEL </string>
+     </property>
+     <property name="icon">
+      <iconset resource="../AHRSResources.qrc">
+       <normaloff>:/icons/resources/Settings.png</normaloff>:/icons/resources/Settings.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>64</width>
+       <height>64</height>
+      </size>
+     </property>
+     <property name="autoDefault">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="m_pStratuxButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto</family>
+       <pointsize>20</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>STRATUX       </string>
      </property>
      <property name="icon">
       <iconset resource="../AHRSResources.qrc">

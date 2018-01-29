@@ -260,8 +260,10 @@ void StreamReader::trafficUpdate( const QString &qsMessage )
             traffic.dAge = dVal;
     }
 
+    // If we know where we are, figure out where they are
     if( (traffic.bPosValid) && m_bHaveMyPos )
     {
+        // Modified haversine algorithm for calculating distance and bearing
         TrafficMath::BearingDist bd = TrafficMath::haversine( m_dMyLat, m_dMyLong, traffic.dLat, traffic.dLong );
 
         traffic.dBearing = bd.dBearing;

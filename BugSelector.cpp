@@ -1,6 +1,8 @@
 /*
 Stratux AHRS Display
 (c) 2018 Unexploded Minds
+
+BugSelector is a simple dialog for allowing user to chose between a heading and a wind bug.
 */
 
 #include <QKeyEvent>

@@ -6,6 +6,8 @@ Stratux AHRS Display
 #include <QSettings>
 #include <QKeyEvent>
 #include <QByteArray>
+#include <QUrl>
+#include <QNetworkRequest>
 
 #include "MenuDialog.h"
 

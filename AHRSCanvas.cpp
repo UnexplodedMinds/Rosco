@@ -1,6 +1,10 @@
 /*
 Stratux AHRS Display
 (c) 2018 Unexploded Minds
+
+The AHRSCanvas is just a giant QWidget used as a painting surface.
+This class also receives the structs that are filled in by StreamReader
+and uses a subset of those to paint the display.
 */
 
 #include <QPainter>
@@ -10,6 +14,8 @@ Stratux AHRS Display
 #include <QFont>
 #include <QLinearGradient>
 #include <QLineF>
+
+#include <math.h>
 
 #include "AHRSCanvas.h"
 #include "BugSelector.h"
@@ -35,11 +41,15 @@ AHRSCanvas::AHRSCanvas( QWidget *parent )
       m_eTrafficDisp( AHRS::AllTraffic ),
       m_bHideGPSLocation( false ),
       m_bUpdated( false ),
-      m_bShowWeather( false )
+      m_bShowWeather( false ),
+      m_bShowGPSDetails( false )
 {
+    // Initialize weather and AHRS settings
+    // No need to init the traffic because it starts out as an empty QMap.
     StreamReader::initWeather( m_weather );
     StreamReader::initSituation( m_situation );
 
+    // Preload the fancier icons that are impractical to paint programmatically
     m_planeIcon.load( ":/graphics/resources/Plane.png" );
     m_headIcon.load( ":/icons/resources/HeadingIcon.png" );
     m_windIcon.load( ":/icons/resources/WindIcon.png" );
@@ -53,6 +63,7 @@ AHRSCanvas::AHRSCanvas( QWidget *parent )
 }
 
 
+// Delete everything that needs deleting
 AHRSCanvas::~AHRSCanvas()
 {
     if( m_pRollIndicator != 0 )
@@ -88,6 +99,8 @@ AHRSCanvas::~AHRSCanvas()
 }
 
 
+// Create the canvas utility instance, create the various pixmaps that are built up for fast painting
+// and start the update timer.
 void AHRSCanvas::init()
 {
     m_pCanvas = new Canvas( width(), height() );
@@ -116,6 +129,7 @@ void AHRSCanvas::init()
 }
 
 
+// Android suspend
 void AHRSCanvas::suspend( bool bSuspend )
 {
     if( bSuspend )
@@ -139,6 +153,9 @@ void AHRSCanvas::suspend( bool bSuspend )
 }
 
 
+// Resize event - on Android typically happens once at init
+// Current android manifest locks the display to portait so it won't fire on rotating the device.
+// This needs some thought though since I'm not sure it's really necessary to lock it into portrait mode.
 void AHRSCanvas::resizeEvent( QResizeEvent *pEvent )
 {
     if( pEvent == 0 )
@@ -159,6 +176,8 @@ void AHRSCanvas::resizeEvent( QResizeEvent *pEvent )
 }
 
 
+// Just a utility timer that periodically updates the display when it's not being driven by the streams
+// coming from the Stratux.
 void AHRSCanvas::timerEvent( QTimerEvent *pEvent )
 {
     if( pEvent == 0 )
@@ -170,6 +189,7 @@ void AHRSCanvas::timerEvent( QTimerEvent *pEvent )
 }
 
 
+// Where all the magic happens
 void AHRSCanvas::paintEvent( QPaintEvent *pEvent )
 {
     if( (!m_bInitialized) || (pEvent == 0) )
@@ -430,12 +450,16 @@ void AHRSCanvas::paintEvent( QPaintEvent *pEvent )
     if( m_eTrafficDisp != AHRS::NoTraffic )
         updateTraffic( &ahrs, c.dH2 + (c.iLargeFontHeight * 2.0) + 30.0 );
 
+    QLinearGradient cloudyGradient( 0.0, 50.0, 0.0, c.dH - 50.0 );
+    cloudyGradient.setColorAt( 0, QColor( 255, 255, 255, 225 ) );
+    cloudyGradient.setColorAt( 1, QColor( 175, 175, 255, 225 ) );
+
     if( m_bShowWeather )
     {
         linePen.setColor( Qt::black );
         linePen.setWidth( 3 );
         ahrs.setPen( linePen );
-        ahrs.setBrush( QColor( 255, 255, 255, 225 ) );
+        ahrs.setBrush( cloudyGradient );
         ahrs.drawRect( 50, 50, c.dW - 100, c.dH - 100 );
         ahrs.setFont( med );
         if( m_weather.prodTime.date() == QDate( 2000, 1, 1 ) )
@@ -449,9 +473,25 @@ void AHRSCanvas::paintEvent( QPaintEvent *pEvent )
             ahrs.drawText( 100, 100 + (c.iMedFontHeight * 9), m_weather.qsLastMessage );
         }
     }
+
+    if( m_bShowGPSDetails )
+    {
+        linePen.setColor( Qt::black );
+        linePen.setWidth( 3 );
+        ahrs.setPen( linePen );
+        ahrs.setBrush( cloudyGradient );
+        ahrs.drawRect( 50, 50, c.dW - 100, c.dH - 100 );
+        ahrs.setFont( med );
+        ahrs.drawText( 100, 100, "GPS Status" );
+        ahrs.drawText( 100, 100 + (c.iMedFontHeight * 3),  QString( "GPS Satellites Seen: %1" ).arg( m_situation.iGPSSatsSeen ) );
+        ahrs.drawText( 100, 100 + (c.iMedFontHeight * 5),  QString( "GPS Satellites Tracked: %1" ).arg( m_situation.iGPSSatsTracked ) );
+        ahrs.drawText( 100, 100 + (c.iMedFontHeight * 7),  QString( "GPS Satellites Locked: %1" ).arg( m_situation.iGPSSats ) );
+        ahrs.drawText( 100, 100 + (c.iMedFontHeight * 9),  QString( "GPS Fix Quality: %1" ).arg( m_situation.iGPSFixQuality ) );
+    }
 }
 
 
+// Draw the traffic onto the heading indicator and the tail numbers on the side
 void AHRSCanvas::updateTraffic( QPainter *pAhrs, double dListPos )
 {
     QList<StratuxTraffic> trafficList = m_trafficMap.values();
@@ -537,6 +577,7 @@ void AHRSCanvas::updateTraffic( QPainter *pAhrs, double dListPos )
 }
 
 
+// Situation (mostly AHRS data) update
 void AHRSCanvas::situation( StratuxSituation s )
 {
     m_situation = s;
@@ -545,6 +586,7 @@ void AHRSCanvas::situation( StratuxSituation s )
 }
 
 
+// Traffic update
 void AHRSCanvas::traffic( int iICAO, StratuxTraffic t )
 {
     QMapIterator<int, StratuxTraffic> it( m_trafficMap );
@@ -573,6 +615,10 @@ void AHRSCanvas::traffic( int iICAO, StratuxTraffic t )
 }
 
 
+// Weather update - almost no testing! The display of this is mostly guesswork
+// and even the raw websocket message is displayed so we can easily look at the guts
+// Once I have some logs of various weather outputs the raw message shown on the
+// display will be removed.
 void AHRSCanvas::weather( StratuxWeather w )
 {
     m_weather = w;
@@ -580,6 +626,7 @@ void AHRSCanvas::weather( StratuxWeather w )
 }
 
 
+// Handle various screen presses (pressing the screen is handled the same as a mouse click here)
 void AHRSCanvas::mousePressEvent( QMouseEvent *pEvent )
 {
     if( pEvent == 0 )
@@ -589,6 +636,12 @@ void AHRSCanvas::mousePressEvent( QMouseEvent *pEvent )
     if( m_bShowWeather )
     {
         m_bShowWeather = false;
+        update();
+        return;
+    }
+    else if( m_bShowGPSDetails )
+    {
+        m_bShowGPSDetails = false;
         update();
         return;
     }
@@ -638,13 +691,27 @@ void AHRSCanvas::mousePressEvent( QMouseEvent *pEvent )
                 m_iWindBugAngle = -1;
         }
     }
-    // This is mainly for making videos to hide your exact location but it could be used
-    // for displaying other GPS details like satellite fixes, etc.
     else if( gpsRect.contains( pressPt ) )
-        m_bHideGPSLocation = (!m_bHideGPSLocation);
+    {
+        m_bShowGPSDetails = (!m_bShowGPSDetails);
+    }
 
     m_bUpdated = true;
     update();
+}
+
+
+// A small easter-egg for displaying bogus GPS location for when you're
+// making videos or taking pictures and you don't want the good people of the internet
+// to find you and kill you in your sleep.
+void AHRSCanvas::mouseDoubleClickEvent( QMouseEvent *pEvent )
+{
+    CanvasConstants c = m_pCanvas->contants();
+    QRect           gpsRect( c.dW - c.dW5, c.dH2, c.dW5, c.iLargeFontHeight * 2.0 );
+    QPoint          pressPt = pEvent->pos();
+
+    if( gpsRect.contains( pressPt ) )
+        m_bHideGPSLocation = (!m_bHideGPSLocation);
 }
 
 
@@ -663,7 +730,7 @@ void AHRSCanvas::buildAltTape()
     {
         ahrs.setPen( QPen( Qt::white, 2 ) );
         iY = iV * c.iTinyFontHeight * 2;
-        ahrs.scale( 1.5, 1.0 );
+        ahrs.scale( (c.dW <= 1440) ? 1.5 : 2.0, 1.0 );
         ahrs.drawText( 0, iY, QString::number( iAlt ) );
         ahrs.resetTransform();
         iY = iY - (c.iTinyFontHeight / 2) + m_iAltSpeedOffset - 2;
