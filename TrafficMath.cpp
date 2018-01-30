@@ -13,11 +13,12 @@ Stratux AHRS Display
 #define MetersToNM 0.000539957
 
 
+// Find the distance and bearing from one lat/long to another
 TrafficMath::BearingDist TrafficMath::haversine( double dLat1, double dLong1, double dLat2, double dLong2 )
 {
     BearingDist ret;
 
-    double dRadiusEarth = 6371008.8;                // meters; mean radius
+    double dRadiusEarth = 6371008.8;
     double deltaLat = radiansRel( dLat2 - dLat1 );
     double dAvgLat = radiansRel( (dLat2 + dLat1) / 2.0 );
     double deltaLong = radiansRel( dLong2 - dLong1 );
@@ -31,6 +32,7 @@ TrafficMath::BearingDist TrafficMath::haversine( double dLat1, double dLong1, do
 }
 
 
+// Normalize angle and convert to radians
 double TrafficMath::radiansRel( double dAng )
 {
     while( dAng > 180 )
@@ -42,6 +44,7 @@ double TrafficMath::radiansRel( double dAng )
 }
 
 
+// Normalize heading angle and convert to degrees
 double TrafficMath::degHeading( double dAng )
 {
     while( dAng < 0 )

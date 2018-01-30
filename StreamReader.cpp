@@ -46,6 +46,7 @@ void StreamReader::connectStreams()
 }
 
 
+// Close all the streams
 void StreamReader::disconnectStreams()
 {
     disconnect( &m_stratuxTraffic, SIGNAL( textMessageReceived( const QString& ) ), this, SLOT( trafficUpdate( const QString& ) ) );
@@ -60,7 +61,7 @@ void StreamReader::disconnectStreams()
 
 
 // Updates from the situation stream
-// This is where the string is received from stratux and the situation struct filled in
+// String is received from stratux and the situation struct filled in
 void StreamReader::situationUpdate( const QString &qsMessage )
 {
     QStringList      qslFields( qsMessage.split( ',' ) );
@@ -185,8 +186,6 @@ void StreamReader::situationUpdate( const QString &qsMessage )
 
 
 // Updates from the traffic stream
-// This is where the string is received from stratux and translated to the X-Plane 11 protocol and pushed back out on the X-Plane UDP port
-// where Garmin Pilot is listening (if it's turned on there).
 void StreamReader::trafficUpdate( const QString &qsMessage )
 {
     QStringList    qslFields( qsMessage.split( ',' ) );
@@ -278,6 +277,7 @@ void StreamReader::trafficUpdate( const QString &qsMessage )
 }
 
 
+// Updates from the status stream
 void StreamReader::statusUpdate( const QString &qsMessage )
 {
     QStringList   qslFields( qsMessage.split( ',' ) );
@@ -332,6 +332,7 @@ void StreamReader::statusUpdate( const QString &qsMessage )
 }
 
 
+// Updates from the weather stream
 void StreamReader::weatherUpdate( const QString &qsMessage )
 {
     QStringList    qslFields( qsMessage.split( ',' ) );
@@ -375,6 +376,7 @@ void StreamReader::weatherUpdate( const QString &qsMessage )
 }
 
 
+// Initialize the weather struct
 void StreamReader::initWeather( StratuxWeather &weather )
 {
     weather.prodTime.setDate( QDate( 2000, 1, 1 ) );
@@ -385,6 +387,7 @@ void StreamReader::initWeather( StratuxWeather &weather )
 }
 
 
+// Initialize the traffic struct
 void StreamReader::initTraffic( StratuxTraffic &traffic )
 {
     traffic.bOnGround = false;
@@ -412,6 +415,7 @@ void StreamReader::initTraffic( StratuxTraffic &traffic )
 }
 
 
+// Initialize the status struct
 void StreamReader::initStatus( StratuxStatus &status )
 {
     status.bGPSConnected = false;
@@ -426,6 +430,7 @@ void StreamReader::initStatus( StratuxStatus &status )
 }
 
 
+// Initialize the situation struct
 void StreamReader::initSituation( StratuxSituation &situation )
 {
     QDateTime nullDateTime( QDate( 2000, 1, 1 ), QTime( 0, 0, 0 ) );
