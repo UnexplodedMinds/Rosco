@@ -1,9 +1,6 @@
 /*
 Stratux AHRS Display
-(c) 2018 Unexploded Minds
-
-AHRSMainWin handles connecting/disconnecting the stratux streams, the menu button
-and the status indicators.  It also handles Android application state changes.
+(c) 2018 Allen K. Lair, Unexploded Minds
 */
 
 #include <QTimer>
@@ -59,8 +56,10 @@ void AHRSMainWin::appStateChanged( Qt::ApplicationState eState )
         case Qt::ApplicationHidden:
         case Qt::ApplicationInactive:
         {
+#if defined( Q_OS_ANDROID )
             m_pStratuxStream->disconnectStreams();
             m_pAHRSDisp->suspend( true );
+#endif
             break;
         }
         default:
@@ -104,7 +103,7 @@ void::AHRSMainWin::menu()
     int        iH = height();
     int        iRet = 0;
 
-    dlg.setGeometry( (iW / 2) - 250 + (g_bEmulated ? 2000 : 0), (iH / 2) - 500, 500, 1000 );
+    dlg.setGeometry( (iW / 2) - 250 + (g_bEmulated ? 2000 : 0), (iH / 2) - 400, 500, 800 );
     iRet = dlg.exec();
     if( iRet == QDialog::Rejected )
         qApp->closeAllWindows();
@@ -112,24 +111,41 @@ void::AHRSMainWin::menu()
     {
         config.beginGroup( "Global" );
         m_pAHRSDisp->trafficToggled( static_cast<AHRS::TrafficDisp>( config.value( "TrafficDisp", static_cast<int>( AHRS::AllTraffic ) ).toInt() ) );
-        // Call the Android function for locking the screen through JNI
-#if defined( Q_OS_ANDROID )
-        if( config.value( "KeepScreenOn", false ).toBool() )
-        {
-            QAndroidJniObject androidAct = QtAndroid::androidActivity();
-
-            if( androidAct.isValid() )
-            {
-                QAndroidJniObject androidWin = androidAct.callObjectMethod( "getWindow", "()Landroid/view/Window;" );
-
-                if( androidWin.isValid() )
-                    androidWin.callMethod<void>( "addFlags", "(I)V", ANDROID_KEEP_SCREEN_ON );
-            }
-        }
-#endif
         config.endGroup();
+        // Call the Android function for locking the screen through JNI if so configured
+#if defined( Q_OS_ANDROID )
+        androidToggleScreenLock();
+#endif
     }
 }
+
+
+#if defined( Q_OS_ANDROID )
+void AHRSMainWin::androidToggleScreenLock()
+{
+/* This is currently causing application crashes when the method is called
+    QSettings         config;
+    QAndroidJniObject androidAct = QtAndroid::androidActivity();
+
+    if( androidAct.isValid() )
+    {
+        QAndroidJniObject androidWin = androidAct.callObjectMethod( "getWindow", "()Landroid/view/Window;" );
+
+        if( androidWin.isValid() )
+        {
+            config.beginGroup( "Global" );
+            bool bKeepScreenOn = config.value( "KeepScreenOn", false ).toBool();
+
+            if( bKeepScreenOn )
+                androidWin.callMethod<void>( "addFlags", "(I)V", ANDROID_KEEP_SCREEN_ON );
+            else
+                androidWin.callMethod<void>( "clearFlags", "(I)V", ANDROID_KEEP_SCREEN_ON );
+            config.endGroup();
+        }
+    }
+*/
+}
+#endif
 
 
 // Toggle the weather display on/off
@@ -145,7 +161,5 @@ void AHRSMainWin::keyReleaseEvent( QKeyEvent *pEvent )
     if( (pEvent->key() == Qt::Key_Back) || (pEvent->key() == Qt::Key_B) )
         qApp->closeAllWindows();
     pEvent->accept();
-    QMainWindow::keyReleaseEvent( pEvent );
 }
-
 

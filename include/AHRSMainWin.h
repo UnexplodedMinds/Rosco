@@ -1,6 +1,6 @@
 /*
 Stratux AHRS Display
-(c) 2018 Unexploded Minds
+(c) 2018 Allen K. Lair, Unexploded Minds
 */
 
 #ifndef __AHRSMAINWIN_H__
@@ -28,6 +28,10 @@ protected:
     void keyReleaseEvent( QKeyEvent *pEvent );
 
 private:
+#if defined( Q_OS_ANDROID )
+    void androidToggleScreenLock();
+#endif
+
     StreamReader *m_pStratuxStream;
     bool          m_bStartup;
 

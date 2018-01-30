@@ -1,6 +1,6 @@
 /*
 Stratux AHRS Display
-(c) 2018 Unexploded Minds
+(c) 2018 Allen K. Lair, Unexploded Minds
 */
 
 #ifndef __CANVAS_H__
@@ -35,6 +35,8 @@ struct CanvasConstants
     int iLargeFontHeight;
 
     int iTinyFontWidth;
+
+    int iAltSpeedOffset;
 };
 
 

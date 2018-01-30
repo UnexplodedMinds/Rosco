@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>500</width>
-    <height>1000</height>
+    <height>800</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,13 +19,13 @@
   <property name="minimumSize">
    <size>
     <width>500</width>
-    <height>1000</height>
+    <height>800</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>500</width>
-    <height>1000</height>
+    <height>800</height>
    </size>
   </property>
   <property name="palette">
@@ -254,7 +254,7 @@
       </font>
      </property>
      <property name="text">
-      <string>RESET LEVEL </string>
+      <string> RESET LEVEL </string>
      </property>
      <property name="icon">
       <iconset resource="../AHRSResources.qrc">
@@ -272,7 +272,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="m_pStratuxButton">
+    <widget class="QPushButton" name="m_pDoneButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
@@ -287,12 +287,15 @@
        <bold>true</bold>
       </font>
      </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton { background-color: qlineargradient( x1:0, y1:0, x2:0, y2:1, stop: 0 white, stop:1 MidnightBlue ); }</string>
+     </property>
      <property name="text">
-      <string>STRATUX       </string>
+      <string> DONE              </string>
      </property>
      <property name="icon">
       <iconset resource="../AHRSResources.qrc">
-       <normaloff>:/icons/resources/Settings.png</normaloff>:/icons/resources/Settings.png</iconset>
+       <normaloff>:/icons/resources/OK.png</normaloff>:/icons/resources/OK.png</iconset>
      </property>
      <property name="iconSize">
       <size>

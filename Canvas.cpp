@@ -1,6 +1,6 @@
 /*
 Stratux AHRS Display
-(c) 2018 Unexploded Minds
+(c) 2018 Allen K. Lair, Unexploded Minds
 */
 
 #include <QFont>
@@ -49,6 +49,8 @@ Canvas::Canvas( double dWidth, double dHeight )
 
     m_preCalc.dAspectL = m_preCalc.dW / m_preCalc.dH;
     m_preCalc.dAspectP = m_preCalc.dH / m_preCalc.dW;
+
+    m_preCalc.iAltSpeedOffset = static_cast<int>( static_cast<double>( m_preCalc.iTinyFontHeight ) * 0.37 );
 }
 
 

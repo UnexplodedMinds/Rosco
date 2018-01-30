@@ -1,6 +1,6 @@
 /*
 Stratux AHRS Display
-(c) 2018 Unexploded Minds
+(c) 2018 Allen K. Lair, Unexploded Minds
 */
 
 #include <QSettings>
@@ -8,6 +8,11 @@ Stratux AHRS Display
 #include <QByteArray>
 #include <QUrl>
 #include <QNetworkRequest>
+
+#if defined( Q_OS_ANDROID )
+#include <QAndroidJniObject>
+#include <QtAndroid>
+#endif
 
 #include "MenuDialog.h"
 
@@ -31,6 +36,7 @@ MenuDialog::MenuDialog( QWidget *pParent )
     connect( m_pTrafficButton, SIGNAL( clicked() ), this, SLOT( traffic() ) );
     connect( m_pStayOnButton, SIGNAL( clicked() ), this, SLOT( stayOn() ) );
     connect( m_pResetLevelButton, SIGNAL( clicked() ), this, SLOT( resetLevel() ) );
+    connect( m_pDoneButton, SIGNAL( clicked() ), this, SLOT( accept() ) );
 }
 
 
@@ -108,7 +114,6 @@ void MenuDialog::keyReleaseEvent( QKeyEvent *pEvent )
 
         config.sync();
         pEvent->accept();
-        QDialog::keyReleaseEvent( pEvent );
         accept();
     }
 }

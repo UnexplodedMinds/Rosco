@@ -30,7 +30,8 @@ SOURCES += \
     Keypad.cpp \
     TrafficMath.cpp \
     Canvas.cpp \
-    MenuDialog.cpp
+    MenuDialog.cpp \
+    Builder.cpp
 
 HEADERS += \
     StratuxStreams.h \
@@ -42,7 +43,8 @@ HEADERS += \
     TrafficMath.h \
     Canvas.h \
     AppDefs.h \
-    MenuDialog.h
+    MenuDialog.h \
+    Builder.h
 
 FORMS += \
     AHRSMainWin.ui \

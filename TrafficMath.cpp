@@ -1,6 +1,6 @@
 /*
 Stratux AHRS Display
-(c) 2018 Unexploded Minds
+(c) 2018 Allen K. Lair, Unexploded Minds
 */
 
 #include <math.h>
@@ -25,7 +25,7 @@ TrafficMath::BearingDist TrafficMath::haversine( double dLat1, double dLong1, do
     double dDistE = deltaLong * dRadiusEarth * fabs( cos( dAvgLat ) );
 
     ret.dDistance = pow( dDistN * dDistN + dDistE * dDistE, 0.5 ) * MetersToNM;
-    ret.dBearing = degHeading( atan2( dDistE, dDistN ) );
+    ret.dBearing  = degHeading( atan2( dDistE, dDistN ) );
 
     return ret;
 }

@@ -1,6 +1,6 @@
 /*
 Stratux AHRS Display
-(c) 2018 Unexploded Minds
+(c) 2018 Allen K. Lair, Unexploded Minds
 */
 
 #include <QKeyEvent>
@@ -96,7 +96,6 @@ void Keypad::keyReleaseEvent( QKeyEvent *pEvent )
     if( (pEvent->key() == Qt::Key_Back) || (pEvent->key() == Qt::Key_B) )
     {
         pEvent->accept();
-        QDialog::keyReleaseEvent( pEvent );
         reject();
     }
 }

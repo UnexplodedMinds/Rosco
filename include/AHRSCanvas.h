@@ -1,6 +1,6 @@
 /*
 Stratux AHRS Display
-(c) 2018 Unexploded Minds
+(c) 2018 Allen K. Lair, Unexploded Minds
 */
 
 #ifndef __AHRSCANVAS_H__
@@ -44,11 +44,6 @@ protected:
     void timerEvent( QTimerEvent *pEvent );
 
 private:
-    void   buildRollIndicator();
-    void   buildHeadingIndicator();
-    void   buildAltTape();
-    void   buildSpeedTape();
-    void   buildVertSpeedTape();
     void   updateTraffic( QPainter *pAhrs, double dListPos );
 
     Canvas *m_pCanvas;
