@@ -26,6 +26,7 @@ public:
 
 protected:
     void keyReleaseEvent( QKeyEvent *pEvent );
+    void timerEvent( QTimerEvent *pEvent );
 
 private:
 #if defined( Q_OS_ANDROID )
@@ -34,6 +35,7 @@ private:
 
     StreamReader *m_pStratuxStream;
     bool          m_bStartup;
+    QDateTime     m_lastStatusUpdate;
 
 private slots:
     void appStateChanged( Qt::ApplicationState eState );

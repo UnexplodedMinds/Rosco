@@ -25,6 +25,7 @@ public:
 
     void connectStreams();
     void disconnectStreams();
+    bool isConnected() { return m_bConnected; }
 
     static void initTraffic( StratuxTraffic &traffic );
     static void initSituation( StratuxSituation &situation );
@@ -44,12 +45,15 @@ private:
     QWebSocket    m_stratuxWeather;
     double        m_dMyLat;
     double        m_dMyLong;
+    bool          m_bConnected;
 
 private slots:
     void situationUpdate( const QString &qsMessage );
     void trafficUpdate( const QString &qsMessage );
     void statusUpdate( const QString &qsMessage );
     void weatherUpdate( const QString &qsMessage );
+    void stratuxConnected();
+    void stratuxDisconnected();
 
 signals:
     void newSituation( StratuxSituation );

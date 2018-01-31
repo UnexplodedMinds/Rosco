@@ -90,7 +90,8 @@ void MenuDialog::resetLevel()
     QNetworkRequest req( url );
     QByteArray      empty;
 
-    m_pNetMan = new QNetworkAccessManager( this );
+    if( m_pNetMan == 0 )
+        m_pNetMan = new QNetworkAccessManager( this );
     m_pNetMan->post( req, empty );
 }
 

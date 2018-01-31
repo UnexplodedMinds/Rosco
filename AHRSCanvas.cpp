@@ -225,7 +225,7 @@ void AHRSCanvas::paintEvent( QPaintEvent *pEvent )
     QLinearGradient skyGradient( 0.0, -c.dH2, 0.0, dPitchH );
     skyGradient.setColorAt( 0, Qt::blue );
     skyGradient.setColorAt( 1, QColor( 85, 170, 255 ) );
-    ahrs.fillRect( -400.0, -c.dH2, c.dW + 800.0, dPitchH + c.dH2, skyGradient );
+    ahrs.fillRect( -800.0, -c.dH2, c.dW + 1600.0, dPitchH + c.dH2, skyGradient );
 
     // Draw brown gradient horizon half offset by stratux pitch
     QLinearGradient groundGradient( 0.0, dPitchH, 0, c.dH + c.dH2 );
@@ -312,7 +312,7 @@ void AHRSCanvas::paintEvent( QPaintEvent *pEvent )
     ahrs.drawRect( c.dW2 - c.dW10, c.dH - m_pHeadIndicator->height() - 45.0 - c.iLargeFontHeight, c.dW5, c.iLargeFontHeight );
     ahrs.setPen( Qt::white );
     ahrs.setFont( large );
-    ahrs.drawText( c.dW2 - (m_pCanvas->largeWidth( qsHead ) / 2), c.dH - m_pHeadIndicator->height() - 45.0 - m_iAltSpeedOffset, qsHead );
+    ahrs.drawText( c.dW2 - (m_pCanvas->largeWidth( qsHead ) / 2), c.dH - m_pHeadIndicator->height() - 45.0 - c.iAltSpeedOffset, qsHead );
 
     // Arrow for heading position above heading dial
     arrow.clear();
@@ -384,7 +384,7 @@ void AHRSCanvas::paintEvent( QPaintEvent *pEvent )
     ahrs.drawRect( c.dW - c.dW5, c.dH4 - (c.iLargeFontHeight / 2), c.dW5 - 50.0, c.iLargeFontHeight );
     ahrs.setPen( Qt::white );
     ahrs.setFont( small );
-    ahrs.drawText( c.dW - c.dW5 + 5, c.dH4 + (c.iLargeFontHeight / 2) - m_iAltSpeedOffset, QString::number( static_cast<int>( m_situation.dBaroPressAlt ) ) );
+    ahrs.drawText( c.dW - c.dW5 + 5, c.dH4 + (c.iLargeFontHeight / 2) - c.iAltSpeedOffset, QString::number( static_cast<int>( m_situation.dBaroPressAlt ) ) );
 
     // Draw the Speed tape
     linePen.setColor( Qt::white );
@@ -401,7 +401,7 @@ void AHRSCanvas::paintEvent( QPaintEvent *pEvent )
     ahrs.drawRect( 0, c.dH4 - (c.iLargeFontHeight / 2), c.dW5, c.iLargeFontHeight );
     ahrs.setPen( Qt::white );
     ahrs.setFont( large );
-    ahrs.drawText( 5, c.dH4 + (c.iLargeFontHeight / 2) - m_iAltSpeedOffset, QString::number( static_cast<int>( m_situation.dGPSGroundSpeed ) ) );
+    ahrs.drawText( 5, c.dH4 + (c.iLargeFontHeight / 2) - c.iAltSpeedOffset, QString::number( static_cast<int>( m_situation.dGPSGroundSpeed ) ) );
 
     // Draw the G-Force indicator box and scale
     ahrs.setPen( linePen );
@@ -437,8 +437,9 @@ void AHRSCanvas::paintEvent( QPaintEvent *pEvent )
     QString qsLong = QString( "%1 %2" )
                         .arg( m_bHideGPSLocation ? 34.5678 : fabs( m_situation.dGPSlong ) )
                         .arg( (m_situation.dGPSlong < 0.0) ? "N" : "S" );
-    ahrs.drawText( c.dW - c.dW5 + 8.0, c.dH2 + c.iLargeFontHeight - m_iAltSpeedOffset - 4, qsLat );
-    ahrs.drawText( c.dW - c.dW5 + 8.0, c.dH2 + (c.iLargeFontHeight * 2) - m_iAltSpeedOffset - 4, qsLong );
+
+    ahrs.drawText( c.dW - c.dW5 + 8.0, c.dH2 + c.iLargeFontHeight - c.iAltSpeedOffset - 4, qsLat );
+    ahrs.drawText( c.dW - c.dW5 + 8.0, c.dH2 + (c.iLargeFontHeight * 2) - c.iAltSpeedOffset - 4, qsLong );
 
     // Traffic altitude key
     ahrs.setPen( linePen );

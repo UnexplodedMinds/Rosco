@@ -36,6 +36,11 @@ AHRSMainWin::AHRSMainWin( QWidget *parent )
     connect( m_pMenuButton, SIGNAL( clicked() ), this, SLOT( menu() ) );
     connect( m_pWeatherButton, SIGNAL( clicked() ), this, SLOT( weather() ) );
     connect( qApp, SIGNAL( applicationStateChanged( Qt::ApplicationState ) ), this, SLOT( appStateChanged( Qt::ApplicationState ) ) );
+
+    m_lastStatusUpdate = QDateTime::currentDateTime();
+
+    // We don't care what the ID is since it's the one and only timer for this class and never gets killed
+    startTimer( 5000 );
 }
 
 
@@ -91,6 +96,8 @@ void AHRSMainWin::statusUpdate( bool bStratux, bool bAHRS, bool bGPS, bool bTraf
     m_pAHRSIndicator->setStyleSheet( bAHRS ? qsOn : qsOff );
     m_pTrafficIndicator->setStyleSheet( bTraffic ? qsOn : qsOff );
     m_pGPSIndicator->setStyleSheet( bGPS ? qsOn : qsOff );
+
+    m_lastStatusUpdate = QDateTime::currentDateTime();
 }
 
 
@@ -161,5 +168,19 @@ void AHRSMainWin::keyReleaseEvent( QKeyEvent *pEvent )
     if( (pEvent->key() == Qt::Key_Back) || (pEvent->key() == Qt::Key_B) )
         qApp->closeAllWindows();
     pEvent->accept();
+}
+
+
+void AHRSMainWin::timerEvent( QTimerEvent *pEvent )
+{
+    if( pEvent == 0 )
+        return;
+
+    // If we're not connected, try to reconnect
+    if( !m_pStratuxStream->isConnected() )
+        appStateChanged( Qt::ApplicationActive );  // Default case where we reconnect and ensure the canvas class is woken up
+    // If we haven't gotten a status update for over ten seconds, force a reconnect
+    if( m_lastStatusUpdate.secsTo( QDateTime::currentDateTime() ) > 10 )
+        m_pStratuxStream->disconnectStreams();
 }
 

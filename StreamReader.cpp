@@ -14,6 +14,7 @@ Stratux AHRS Display
 #include "StreamReader.h"
 #include "TrafficMath.h"
 
+
 extern bool g_bEmulated;
 
 
@@ -23,8 +24,12 @@ StreamReader::StreamReader( QObject *parent )
       m_bAHRSStatus( false ),
       m_bStratuxStatus( false ),
       m_bGPSStatus( false ),
-      m_bWeatherStatus( false )
+      m_bWeatherStatus( false ),
+      m_bConnected( false )
 {
+    // If one connects there's a 99.99% chance they all will so just use the status
+    connect( &m_stratuxStatus, SIGNAL( connected() ), this, SLOT( stratuxConnected() ) );
+    connect( &m_stratuxStatus, SIGNAL( connected() ), this, SLOT( stratuxDisconnected() ) );
 }
 
 
@@ -36,6 +41,7 @@ StreamReader::~StreamReader()
 // Open the websocket URLs from the Stratux
 void StreamReader::connectStreams()
 {
+    // Open the streams
     m_stratuxSituation.open( QUrl( QString( "ws://192.168.10.1/situation" ) ) );
     m_stratuxTraffic.open( QUrl( QString( "ws://192.168.10.1/traffic" ) ) );
     m_stratuxStatus.open( QUrl( QString( "ws://192.168.10.1/status" ) ) );
@@ -57,6 +63,7 @@ void StreamReader::disconnectStreams()
     m_stratuxTraffic.close();
     m_stratuxStatus.close();
     m_stratuxWeather.close();
+    emit newStatus( false, false, false, false, false );
 }
 
 
@@ -474,5 +481,18 @@ void StreamReader::initSituation( StratuxSituation &situation )
     situation.dAHRSGLoadMax = 0.0;
     situation.lastAHRSAttTime = nullDateTime;
     situation.iAHRSStatus = 0;
+}
+
+
+void StreamReader::stratuxConnected()
+{
+    m_bConnected = true;
+}
+
+
+void StreamReader::stratuxDisconnected()
+{
+    emit newStatus( false, false, false, false, false );
+    m_bConnected = false;
 }
 
