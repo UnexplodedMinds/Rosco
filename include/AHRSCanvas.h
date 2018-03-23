@@ -63,7 +63,6 @@ private:
     QPixmap                  *m_pSpeedTape;
     QPixmap                  *m_pVertSpeedTape;
     QPixmap                   m_trafficAltKey;
-    double                    m_dDPIMult;
     AHRS::TrafficDisp         m_eTrafficDisp;
     bool                      m_bHideGPSLocation;
     bool                      m_iDispTimer;

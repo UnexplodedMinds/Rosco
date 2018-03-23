@@ -54,8 +54,6 @@ AHRSCanvas::AHRSCanvas( QWidget *parent )
     m_headIcon = m_headIcon.scaled( 80, 80, Qt::IgnoreAspectRatio, Qt::SmoothTransformation );
     m_windIcon = m_windIcon.scaled( 80, 80, Qt::IgnoreAspectRatio, Qt::SmoothTransformation );
 
-    m_dDPIMult = static_cast<double>( physicalDpiX() ) / 144.0; // Android DPI vs Desktop DPI
-
     // Quick and dirty way to ensure we're shown full screen before any calculations happen
     // This should be cleaned up and could probably be put in the app state handler.
     QTimer::singleShot( 500, this, SLOT( init() ) );
@@ -596,10 +594,13 @@ void AHRSCanvas::traffic( int iICAO, StratuxTraffic t )
     QMapIterator<int, StratuxTraffic> it( m_trafficMap );
     bool                              bTrafficRemoved = true;
 
+    m_trafficMap.insert( iICAO, t );
+
     // Each time this is updated, remove an old entry
     while( bTrafficRemoved )
     {
         bTrafficRemoved = false;
+        it.toFront();
         while( it.hasNext() )
         {
             it.next();
@@ -613,7 +614,6 @@ void AHRSCanvas::traffic( int iICAO, StratuxTraffic t )
         }
     }
 
-    m_trafficMap.insert( iICAO, t );
     m_bUpdated = true;
     update();
 }
@@ -655,6 +655,7 @@ void AHRSCanvas::mousePressEvent( QMouseEvent *pEvent )
     QPoint          pressPt( pEvent->pos() );
     QRect           headRect( c.dW2 - (m_pHeadIndicator->width() / 2), c.dH - m_pHeadIndicator->height() - 10.0, m_pHeadIndicator->width(), m_pHeadIndicator->height() );
     QRect           gpsRect( c.dW - c.dW5, c.dH2, c.dW5, c.iLargeFontHeight * 2.0 );
+    QRect           altRect( c.dW - c.dW5, 0.0, c.dW5, c.dH2 );
 
     // User pressed on the heading indicator
     if( headRect.contains( pressPt ) )
@@ -698,6 +699,15 @@ void AHRSCanvas::mousePressEvent( QMouseEvent *pEvent )
     else if( gpsRect.contains( pressPt ) )
     {
         m_bShowGPSDetails = (!m_bShowGPSDetails);
+    }
+    else if( gpsRect.contains( altRect ) )
+    {
+        Keypad altBugDlg( this );
+
+        if( altBugDlg.exec() == QDialog::Accepted )
+        {
+            Builder::buildAltTape( m_pAltTape, m_pCanvas, altBugDlg.value() );
+        }
     }
 
     m_bUpdated = true;

@@ -21,7 +21,7 @@ Builder::Builder()
 // Build the altitude tape pixmap
 // Note that there are pixmap size limits on Android that appear to be smaller than Windows and X11
 // so there are font size limitations in order not to exceed them.
-void Builder::buildAltTape( QPixmap *pAltTape, Canvas *pCanvas )
+void Builder::buildAltTape( QPixmap *pAltTape, Canvas *pCanvas, int iBug )
 {
     QPainter        ahrs( pAltTape );
     QFont           altFont( "Roboto", 12 );
@@ -33,6 +33,11 @@ void Builder::buildAltTape( QPixmap *pAltTape, Canvas *pCanvas )
     {
         ahrs.setPen( QPen( Qt::white, 2 ) );
         iY = iV * c.iTinyFontHeight * 2;
+        if( iBug != -1 )
+        {
+            if( iAlt <= iBug )
+                ahrs.fillRect( 0, iY - c.iTinyFontHeight, pAltTape->width(), c.iTinyFontHeight, Qt::cyan );
+        }
         ahrs.scale( (c.dW <= 1200) ? 1.5 : 3.0, 1.0 );
         ahrs.drawText( 0, iY, QString::number( iAlt ) );
         ahrs.resetTransform();

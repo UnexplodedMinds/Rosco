@@ -117,7 +117,7 @@ void::AHRSMainWin::menu()
     else if( iRet == QDialog::Accepted )
     {
         config.beginGroup( "Global" );
-        m_pAHRSDisp->trafficToggled( static_cast<AHRS::TrafficDisp>( config.value( "TrafficDisp", static_cast<int>( AHRS::AllTraffic ) ).toInt() ) );
+        m_pAHRSDisp->trafficToggled( static_cast<AHRS::TrafficDisp>( config.value( "TrafficDisp", static_cast<int>( AHRS::ADSBOnlyTraffic ) ).toInt() ) );
         config.endGroup();
         // Call the Android function for locking the screen through JNI if so configured
 #if defined( Q_OS_ANDROID )

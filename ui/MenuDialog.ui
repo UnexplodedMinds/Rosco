@@ -258,7 +258,7 @@
      </property>
      <property name="icon">
       <iconset resource="../AHRSResources.qrc">
-       <normaloff>:/icons/resources/Settings.png</normaloff>:/icons/resources/Settings.png</iconset>
+       <normaloff>:/icons/resources/Level.png</normaloff>:/icons/resources/Level.png</iconset>
      </property>
      <property name="iconSize">
       <size>
