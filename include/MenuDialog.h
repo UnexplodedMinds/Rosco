@@ -26,15 +26,13 @@ protected:
 
 private:
     void updateTrafficButton();
-    void updateStayOnButton();
 
     AHRS::TrafficDisp      m_eTrafficDisp;
-    bool                   m_bKeepScreenOn;
     QNetworkAccessManager *m_pNetMan;
 
 private slots:
     void traffic();
-    void stayOn();
+    void garminToggle();
     void resetLevel();
     void exit();
 };

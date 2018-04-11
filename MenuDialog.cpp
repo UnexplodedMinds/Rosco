@@ -8,6 +8,7 @@ Stratux AHRS Display
 #include <QByteArray>
 #include <QUrl>
 #include <QNetworkRequest>
+#include <QUdpSocket>
 
 #if defined( Q_OS_ANDROID )
 #include <QAndroidJniObject>
@@ -28,13 +29,11 @@ MenuDialog::MenuDialog( QWidget *pParent )
     config.beginGroup( "Global" );
     m_eTrafficDisp = static_cast<AHRS::TrafficDisp>( config.value( "TrafficDisp", static_cast<int>( AHRS::AllTraffic ) ).toInt() );
     updateTrafficButton();
-    m_bKeepScreenOn = config.value( "KeepScreenOn", false ).toBool();
-    updateStayOnButton();
     config.endGroup();
 
     connect( m_pExitButton, SIGNAL( clicked() ), this, SLOT( exit() ) );
     connect( m_pTrafficButton, SIGNAL( clicked() ), this, SLOT( traffic() ) );
-    connect( m_pStayOnButton, SIGNAL( clicked() ), this, SLOT( stayOn() ) );
+    connect( m_pGarminToggleButton, SIGNAL( clicked() ), this, SLOT( garminToggle() ) );
     connect( m_pResetLevelButton, SIGNAL( clicked() ), this, SLOT( resetLevel() ) );
     connect( m_pDoneButton, SIGNAL( clicked() ), this, SLOT( accept() ) );
 }
@@ -70,16 +69,12 @@ void MenuDialog::traffic()
 
 
 // Set screen to stay on or not
-void MenuDialog::stayOn()
+void MenuDialog::garminToggle()
 {
-    QSettings config;
+    QUdpSocket roscoSocket;
 
-    m_bKeepScreenOn = (!m_bKeepScreenOn);
-    updateStayOnButton();
-    config.beginGroup( "Global" );
-    config.setValue( "KeepScreenOn", m_bKeepScreenOn );
-    config.endGroup();
-    config.sync();
+    roscoSocket.writeDatagram( QByteArray( "EnableGarmin" ), QHostAddress( "192.168.10.1" ), 49010 );
+    roscoSocket.waitForBytesWritten( 250 );
 }
 
 
@@ -138,15 +133,5 @@ void MenuDialog::updateTrafficButton()
             m_pTrafficButton->setText( " NO TRAFFIC " );
             break;
     }
-}
-
-
-// Apply stylesheet to the stay on button depending on whether it's on or off
-void MenuDialog::updateStayOnButton()
-{
-    if( m_bKeepScreenOn )
-        m_pStayOnButton->setStyleSheet( "QPushButton { background-color: qlineargradient( x1:0, y1:0, x2:0, y2:1, stop: 0 white, stop:1 green ); }" );
-    else
-        m_pStayOnButton->setStyleSheet( "QPushButton { background-color: qlineargradient( x1:0, y1:0, x2:0, y2:1, stop: 0 white, stop:1 CornflowerBlue ); }" );
 }
 
